@@ -48,9 +48,9 @@ export default defineConfig({
                 changeOrigin: true
             },
             '/api': {
-                target: 'http://localhost:8080',
+                target: 'https://maps.banjonghouse.ovh',
                 changeOrigin: true,
-                secure: false,
+                secure: true,
                 ws: true, // proxy websockets
                 configure: (proxy) => {
                     proxy.on('error', (err) => {

@@ -35,18 +35,6 @@
                     <Button label="Start Your Journey" icon="pi pi-arrow-right" iconPos="right" as="router-link" to="/register" size="large" class="btn-hero-primary" />
                     <Button label="Sign In" as="router-link" to="/login" size="large" class="btn-hero-secondary" />
                   </div>
-
-                  <div class="social-proof">
-                    <a href="https://github.com/tess1o/geopulse" target="_blank" rel="noopener noreferrer" class="github-badge">
-                      <div class="github-icon"><i class="pi pi-github"></i></div>
-                      <div class="github-stats">
-                        <span class="star-count"><i class="pi pi-star-fill"></i> 700+ Stars</span>
-                        <span class="separator">•</span>
-                        <span class="fork-count"><i class="pi pi-share-alt"></i> 28+ Forks</span>
-                      </div>
-                    </a>
-                    <p class="social-proof-text">The privacy-first, open-source alternative to Google Timeline.</p>
-                  </div>
                 </template>
                 <template v-else>
                   <div class="hero-actions">
@@ -57,7 +45,6 @@
             <div v-else class="loading-auth">
               <i class="pi pi-spin pi-spinner"></i> Loading workspace...
             </div>
-
           </div>
 
           <div class="hero-visual">
@@ -66,44 +53,15 @@
               <div class="orbit-ring ring-2"></div>
               <div class="orbit-ring ring-3"></div>
               <img src="/geopulse-logo.svg" alt="GeoPulse logo" class="massive-logo" />
-              <div class="feature-chip chip-1"><div class="chip-icon"><i class="pi pi-send"></i></div><span>Live Tracking</span></div>
-              <div class="feature-chip chip-2"><div class="chip-icon"><i class="pi pi-download"></i></div><span>Smart Import</span></div>
-              <div class="feature-chip chip-3"><div class="chip-icon"><i class="pi pi-calendar"></i></div><span>Auto-Timeline</span></div>
-              <div class="feature-chip chip-4"><div class="chip-icon"><i class="pi pi-chart-line"></i></div><span>Deep Insights</span></div>
-              <div class="feature-chip chip-5"><div class="chip-icon"><i class="pi pi-images"></i></div><span>Immich Integration</span></div>
-              <div class="feature-chip chip-6"><div class="chip-icon"><i class="pi pi-shield"></i></div><span>SSO and Roles</span></div>
+              <div class="feature-chip chip-1"><div class="chip-icon"><i class="pi pi-send"></i></div><span>Live Tracking</span><div class="chip-tooltip">Stream GPS points as they arrive and watch your movement unfold live.</div></div>
+              <div class="feature-chip chip-2"><div class="chip-icon"><i class="pi pi-download"></i></div><span>Smart Import</span><div class="chip-tooltip">Effortlessly import bulk GPS history from external sources like Google Takeout.</div></div>
+              <div class="feature-chip chip-3"><div class="chip-icon"><i class="pi pi-calendar"></i></div><span>Auto-Timeline</span><div class="chip-tooltip">Watch your raw GPS points automatically organize into distinct trips and stops.</div></div>
+              <div class="feature-chip chip-4"><div class="chip-icon"><i class="pi pi-chart-line"></i></div><span>Deep Insights</span><div class="chip-tooltip">Analyze your travel patterns with built-in insights and rich visualizations.</div></div>
+              <div class="feature-chip chip-5"><div class="chip-icon"><i class="pi pi-images"></i></div><span>Immich Integration</span><div class="chip-tooltip">Connect Immich to seamlessly plot your photos along your journey timeline.</div></div>
+              <div class="feature-chip chip-6"><div class="chip-icon"><i class="pi pi-shield"></i></div><span>SSO and Roles</span><div class="chip-tooltip">Enforce secure multi-user access with built-in Single Sign-On and permissions.</div></div>
             </div>
           </div>
         </div>
-
-        <div class="dock-wrapper" v-if="!isResolvingAuth && !authStore.isAuthenticated"
-             @mouseenter="stopFeatureAutoPlay" 
-             @mouseleave="startFeatureAutoPlay">
-          <div class="feature-dock">
-            <div class="dock-line"></div>
-            <div class="dock-items">
-              <div v-for="feature in features" :key="feature.id" 
-                   class="dock-item" 
-                   :class="{ active: activeFeatureId === feature.id }"
-                   @click="setActiveFeature(feature.id)">
-                <div class="dock-icon">
-                  <i :class="feature.icon"></i>
-                </div>
-                <div class="dock-tooltip">{{ feature.title }}</div>
-              </div>
-            </div>
-          </div>
-
-          <transition name="fade" mode="out-in">
-            <div v-if="activeFeature" :key="activeFeature.id" class="feature-showcase">
-              <div class="showcase-content">
-                <h3>{{ activeFeature.title }}</h3>
-                <p>{{ activeFeature.description }}</p>
-              </div>
-            </div>
-          </transition>
-        </div>
-
       </section>
 
       <section v-if="shouldShowQuickStats" class="quick-stats-section">
@@ -122,6 +80,25 @@
               <p class="quick-stat-value">{{ timeMovingTodayLabel }}</p>
             </article>
           </div>
+        </div>
+      </section>
+
+      <section v-if="!isResolvingAuth && !authStore.isAuthenticated" class="features-section">
+        <div class="content-wrapper">
+          <div class="section-header">
+            <h2>Core Capabilities</h2>
+            <p>Built for self-hosted tracking: ingest data, analyze movement, and control your sharing entirely.</p>
+          </div>
+          <div class="feature-bento-grid">
+            <Card v-for="feature in visibleFeatures" :key="feature.id" class="bento-card">
+              <template #content>
+                <div class="bento-icon"><i :class="feature.icon"></i></div>
+                <h3>{{ feature.title }}</h3>
+                <p>{{ feature.description }}</p>
+              </template>
+            </Card>
+          </div>
+          <Button v-if="!isDesktopViewport && hasHiddenFeatures" :label="showAllFeatures ? 'Show fewer' : 'Show all capabilities'" :icon="showAllFeatures ? 'pi pi-angle-up' : 'pi pi-angle-down'" severity="secondary" outlined class="mobile-feature-toggle" @click="toggleFeatureVisibility" />
         </div>
       </section>
     </main>
@@ -156,41 +133,14 @@ const latestGpsUpdateLabel = ref('')
 const distanceTodayLabel = ref('')
 const timeMovingTodayLabel = ref('')
 
-const activeFeatureId = ref(1)
-
-let featureInterval = null
-
-const startFeatureAutoPlay = () => {
-  stopFeatureAutoPlay()
-  featureInterval = setInterval(() => {
-    const currentIndex = features.findIndex(f => f.id === activeFeatureId.value)
-    const nextIndex = (currentIndex + 1) % features.length
-    activeFeatureId.value = features[nextIndex].id
-  }, 5000)
-}
-
-const stopFeatureAutoPlay = () => {
-  if (featureInterval) {
-    clearInterval(featureInterval)
-    featureInterval = null
-  }
-}
-
-const setActiveFeature = (id) => {
-  activeFeatureId.value = id
-  startFeatureAutoPlay()
-}
-
 const features = [
-  { id: 1, title: 'Real-time Tracking Sources', description: 'Ingest live points from OwnTracks (HTTP/MQTT), Overland, GPSLogger, Home Assistant, Traccar, and Colota.', icon: 'pi pi-send', colorClass: 'chip-1-color' },
-  { id: 2, title: 'Universal Import', description: 'Bulk import history from Google Timeline, GPX, GeoJSON, OwnTracks exports, and CSV.', icon: 'pi pi-download', colorClass: 'chip-2-color' },
-  { id: 3, title: 'Smart Timeline Detection', description: 'Convert raw points into stays, trips, and gaps with configurable sensitivity and movement logic.', icon: 'pi pi-calendar', colorClass: 'chip-3-color' },
-  { id: 4, title: 'Deep Insights', description: 'Explore distance, visit frequency, and movement patterns through dashboard and journey analytics.', icon: 'pi pi-chart-line', colorClass: 'chip-4-color' },
-  { id: 5, title: 'Immich Integration', description: 'Show Immich photos directly on your map and timeline to connect places with memories.', icon: 'pi pi-images', colorClass: 'chip-5-color' },
-  { id: 6, title: 'Sharing, Roles, and SSO', description: 'Use friend visibility controls, secure guest links, invitations, audit logs, and OIDC login.', icon: 'pi pi-shield', colorClass: 'chip-6-color' }
+  { id: 1, title: 'Live Tracking', description: 'Stream GPS points as they arrive and watch your movement unfold live.', icon: 'pi pi-send', colorClass: 'chip-1-color' },
+  { id: 2, title: 'Smart Import', description: 'Effortlessly import bulk GPS history from external sources like Google Takeout.', icon: 'pi pi-download', colorClass: 'chip-2-color' },
+  { id: 3, title: 'Auto-Timeline', description: 'Watch your raw GPS points automatically organize into distinct trips and stops.', icon: 'pi pi-calendar', colorClass: 'chip-3-color' },
+  { id: 4, title: 'Deep Insights', description: 'Analyze your travel patterns with built-in insights and rich visualizations.', icon: 'pi pi-chart-line', colorClass: 'chip-4-color' },
+  { id: 5, title: 'Immich Integration', description: 'Connect Immich to seamlessly plot your photos along your journey timeline.', icon: 'pi pi-images', colorClass: 'chip-5-color' },
+  { id: 6, title: 'SSO and Roles', description: 'Enforce secure multi-user access with built-in Single Sign-On and permissions.', icon: 'pi pi-shield', colorClass: 'chip-6-color' }
 ]
-
-const activeFeature = computed(() => features.find(f => f.id === activeFeatureId.value))
 
 const heroTitle = computed(() => {
   return authStore.isAuthenticated ? 'Welcome back' : 'Your location, your data'
@@ -245,14 +195,9 @@ onMounted(async () => {
   if (authStore.isAuthenticated) {
     updateUserStats()
   }
-
-  if (!authStore.isAuthenticated) {
-    startFeatureAutoPlay()
-  }
 })
 
 onBeforeUnmount(() => {
-  stopFeatureAutoPlay()
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', updateViewportState)
   }
@@ -285,7 +230,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .auth-actions { display: flex; align-items: center; gap: 0.5rem; }
 .landing-main { flex: 1; }
 
-.hero-section { padding: 3rem 1.5rem; background: var(--home-hero-gradient); position: relative; overflow: visible; }
+.hero-section { padding: 3rem 1.5rem; background: var(--home-hero-gradient); position: relative; overflow: hidden; border-bottom: 1px solid rgba(15, 23, 42, 0.04); }
 .hero-section::before { content: ''; position: absolute; inset: 0; background: var(--home-hero-glow); pointer-events: none; }
 .hero-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 3rem; position: relative; z-index: 1; }
 @media (min-width: 1024px) { .hero-container { grid-template-columns: 1fr 1fr; align-items: center; } }
@@ -301,16 +246,6 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   
   :deep(.btn-hero-secondary) { padding: 0.875rem 1.75rem; border-radius: 999px; font-weight: 600; font-size: 1.05rem; background: rgba(241, 245, 249, 0.8); border: 1px solid rgba(226, 232, 240, 0.8); color: #334155; transition: transform 0.2s ease, background 0.2s ease; }
   :deep(.btn-hero-secondary:hover) { transform: translateY(-2px); background: #f8fafc; color: #0f172a; border-color: #cbd5e1; }
-
-  .social-proof { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
-  .github-badge { display: inline-flex; align-items: center; gap: 0.75rem; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 999px; padding: 0.35rem 1rem 0.35rem 0.35rem; text-decoration: none; width: fit-content; transition: all 0.2s ease; backdrop-filter: blur(8px); }
-  .github-badge:hover { background: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); transform: translateY(-2px); border-color: rgba(203, 213, 225, 0.8); }
-  .github-icon { width: 2.25rem; height: 2.25rem; background: #0f172a; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
-  .github-stats { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--home-text-primary); }
-  .star-count i { color: #eab308; margin-right: 0.2rem; }
-  .fork-count i { margin-right: 0.2rem; }
-  .separator { color: var(--home-text-secondary); opacity: 0.5; }
-  .social-proof-text { font-size: 0.9rem; color: var(--home-text-secondary); margin: 0; margin-left: 0.5rem; font-weight: 500; }
 
   .loading-auth { display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; color: var(--home-text-secondary); margin-top: 2rem; }
 
@@ -334,27 +269,28 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .chip-5 .chip-icon { background: rgba(234,88,12,0.1); color: #ea580c; } 
 .chip-6 .chip-icon { background: rgba(225,29,72,0.1); color: #e11d48; }
 
-.chip-1 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 90px), calc(-50% - 107px)); animation-delay: 0s; animation-duration: 7s; } 
-.chip-2 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 135px), calc(-50% - 173px)); animation-delay: -1.5s; animation-duration: 8.5s; }
-.chip-3 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 195px), calc(-50% + 102px)); animation-delay: -3s; animation-duration: 6.5s; }
-.chip-4 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 99px), calc(-50% + 99px)); animation-delay: -2s; animation-duration: 7.5s; }
-.chip-5 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 80px), calc(-50% + 205px)); animation-delay: -4.5s; animation-duration: 8s;}
-.chip-6 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 155px), calc(-50% - 155px)); animation-delay: -0.5s; animation-duration: 9s; }
+  .chip-tooltip { position: absolute; top: calc(100% + 15px); left: 50%; transform: translateX(-50%) translateY(10px) scale(0.95); width: 300px; padding: 1.25rem 1.5rem; background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.98)); backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 1.25rem; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15), 0 4px 6px rgba(15, 23, 42, 0.05); color: var(--home-text-secondary); font-size: 0.95rem; font-weight: 400; line-height: 1.6; white-space: normal; text-align: center; opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; }
+  .chip-3 .chip-tooltip, .chip-5 .chip-tooltip, .chip-6 .chip-tooltip { top: auto; bottom: calc(100% + 15px); transform: translateX(-50%) translateY(-10px) scale(0.95); }
+  .feature-chip:hover .chip-tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0) scale(1); }
 
 @media (min-width: 1024px) {
-  .hero-visual { min-height: 550px; }
+  .chip-1 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 90px), calc(-50% - 107px)); animation-delay: 0s; animation-duration: 7s; } 
+    .chip-2 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 135px), calc(-50% - 173px)); animation-delay: -1.5s; animation-duration: 8.5s; }
+    .chip-3 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 195px), calc(-50% + 102px)); animation-delay: -3s; animation-duration: 6.5s; }
+  .chip-4 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 99px), calc(-50% + 99px)); animation-delay: -2s; animation-duration: 7.5s; }
+    .chip-5 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 80px), calc(-50% + 205px)); animation-delay: -4.5s; animation-duration: 8s;}
+  .chip-6 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 155px), calc(-50% - 155px)); animation-delay: -0.5s; animation-duration: 9s; }
 }
 @media (max-width: 1023px) {
-  .hero-visual { min-height: 450px; margin-top: 2rem; margin-bottom: 1rem; } 
-  .visual-showcase { transform: scale(0.85); transform-origin: center; }
+  .hero-visual { min-height: 400px; overflow: hidden; padding-bottom: 2rem; } 
   .massive-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-  .dock-wrapper { margin-top: 2rem; }
-}
-@media (max-width: 767px) {
-  .hero-container { gap: 1.5rem; }
-  .hero-visual { min-height: 320px; margin-top: 1rem; overflow: visible; }
-  .visual-showcase { transform: scale(0.65); transform-origin: center; }
-  .dock-wrapper { margin-top: 1rem; }
+  .chip-1 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 76px), calc(-50% - 91px)); animation-delay: 0s; animation-duration: 7s; }
+    .chip-2 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 114px), calc(-50% - 147px)); animation-delay: -1.5s; animation-duration: 8.5s; }
+    .chip-3 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 165px), calc(-50% + 86px)); animation-delay: -3s; animation-duration: 6.5s; }
+  .chip-4 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 84px), calc(-50% + 84px)); animation-delay: -2s; animation-duration: 7.5s; }
+    .chip-5 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 68px), calc(-50% + 173px)); animation-delay: -4.5s; animation-duration: 8s;}
+  .chip-6 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 131px), calc(-50% - 131px)); animation-delay: -0.5s; animation-duration: 9s; }
+  .orbit-ring { transform: translate(-50%, -50%) scale(0.85); }
 }
 
 .quick-stats-section { padding: 3rem 0; background: var(--home-bg); }
@@ -370,37 +306,25 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .quick-stat-label { margin: 0; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--home-text-secondary); }
 .quick-stat-value { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--home-text-primary); }
 
-.dock-wrapper { width: 100%; max-width: 1400px; margin: 5rem auto 0; padding: 0 1.5rem; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; }
-.feature-dock { position: relative; width: 100%; display: flex; justify-content: center; }
-  .dock-line { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.3) 20%, rgba(37, 99, 235, 0.3) 80%, transparent); z-index: 1; }
-  .dock-items { display: flex; gap: 1.5rem; position: relative; z-index: 2; align-items: center; }
-  .dock-item { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-  
-  .dock-icon { width: 3.5rem; height: 3.5rem; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1rem; border: 1px solid rgba(226, 232, 240, 0.8); display: flex; align-items: center; justify-content: center; color: var(--home-text-primary); font-size: 1.5rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); position: relative; overflow: hidden; }
-  .dock-icon::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(180deg, rgba(255,255,255,0.8), transparent); }
-  
-  .dock-item:hover .dock-icon { transform: translateY(-6px) scale(1.05); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1); border-color: rgba(96, 165, 250, 0.5); color: #2563eb; }
-  .dock-item.active .dock-icon { transform: translateY(-6px) scale(1.05); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.12); border-color: rgba(59, 130, 246, 0.6); color: #2563eb; background: #f8fafc; }
-  
-  .dock-tooltip { position: absolute; bottom: calc(100% + 12px); top: auto; background: white; color: #0f172a; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.05); opacity: 0; visibility: hidden; transform: translateY(5px); transition: all 0.3s ease; pointer-events: none; z-index: 100; }
-  .dock-item:hover .dock-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
+.features-section { padding: 5rem 0; background: var(--home-bg); }
+.section-header { text-align: center; margin-bottom: 4rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+.section-header h2 { font-size: clamp(2rem, 4vw, 2.5rem); margin: 0 0 1rem 0; letter-spacing: -0.02em; color: var(--home-text-primary); }
+.section-header p { font-size: 1.1rem; color: var(--home-text-secondary); margin: 0; line-height: 1.6; }
 
-  .feature-showcase { margin-top: 2rem; background: #ffffff; backdrop-filter: blur(20px); border: 1px solid rgba(203, 213, 225, 0.6); border-radius: 1rem; padding: 1.5rem 2rem; box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.03); text-align: center; position: relative; z-index: 2; width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 0.5rem; }
-  .p-dark .feature-showcase { background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9)); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.05); }
-  .feature-showcase h3 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--home-text-primary); }
-  .feature-showcase p { margin: 0; font-size: 1.05rem; line-height: 1.6; color: var(--home-text-secondary); }
+.feature-bento-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 768px) { .feature-bento-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .feature-bento-grid { grid-template-columns: repeat(3, 1fr); } }
 
-  .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
-  .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(10px); }
+.bento-card { background: linear-gradient(170deg, rgba(255, 255, 255, 0.96), rgba(243, 249, 255, 0.9)); border: 1px solid var(--home-border); border-radius: 1.25rem; box-shadow: var(--home-shadow); transition: transform 0.2s ease, box-shadow 0.2s ease; height: 100%; }
+.bento-card:hover { transform: translateY(-4px); box-shadow: 0 15px 34px rgba(23, 37, 84, 0.12); }
+.bento-card :deep(.p-card-body) { padding: 2rem; height: 100%; display: flex; flex-direction: column; }
+.bento-card :deep(.p-card-content) { padding: 0; flex: 1; display: flex; flex-direction: column; }
 
-  @media (max-width: 1023px) {
-    .feature-dock { justify-content: center; }
-    .dock-line { left: 0; right: 0; }
-    .dock-items { gap: 1rem; overflow-x: auto; padding: 1rem; scrollbar-width: none; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
-    .dock-items::-webkit-scrollbar { display: none; }
-    .dock-icon { width: 3rem; height: 3rem; font-size: 1.2rem; }
-  }
+.bento-icon { width: 3rem; height: 3rem; border-radius: 0.75rem; background: linear-gradient(135deg, rgba(15, 118, 110, 0.15) 0%, rgba(14, 165, 233, 0.1) 100%); color: var(--home-accent); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1.5rem; border: 1px solid rgba(15, 118, 110, 0.2); }
+.bento-card h3 { margin: 0 0 0.75rem 0; font-size: 1.2rem; font-weight: 700; color: var(--home-text-primary); }
+.bento-card p { margin: 0; font-size: 0.95rem; line-height: 1.6; color: var(--home-text-secondary); flex: 1; }
 
+.mobile-feature-toggle { margin-top: 2rem; width: 100%; }
 .landing-footer { padding: 2rem 0; border-top: 1px solid var(--home-border); text-align: center; color: var(--home-text-secondary); font-size: 0.9rem; }
 
 @keyframes orbitPulse {
@@ -423,20 +347,10 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   --home-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
   --home-hero-gradient: linear-gradient(160deg, #020617 0%, #0a1128 50%, #03081a 100%);
   --home-hero-glow: radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
-  background: radial-gradient(circle at 8% 10%, rgba(37, 99, 235, 0.05) 0%, rgba(37, 99, 235, 0) 34%), radial-gradient(circle at 90% 75%, rgba(14, 165, 233, 0.05) 0%, rgba(14, 165, 233, 0) 30%), var(--home-bg);
 }
 .p-dark .landing-header { background: rgba(2, 6, 23, 0.85); border-bottom-color: rgba(255,255,255,0.05); }
 .p-dark .feature-chip { background: rgba(15, 23, 42, 0.85); border-color: #334155; }
-.p-dark .dock-icon { background: #0f172a; border-color: rgba(255,255,255,0.1); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-.p-dark .dock-icon::before { background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent); }
-.p-dark .dock-item:hover .dock-icon { border-color: rgba(96, 165, 250, 0.5); color: #60a5fa; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25); }
-.p-dark .dock-item.active .dock-icon { background: #1e293b; border-color: rgba(59, 130, 246, 0.6); color: #60a5fa; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
-.p-dark .dock-tooltip { background: #1e293b; color: #f8fafc; border-color: #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-.p-dark .quick-stat-tile, .p-dark .welcome-back-box { background: rgba(15, 23, 42, 0.6); border-color: rgba(255,255,255,0.08); }
+.p-dark .bento-card, .p-dark .quick-stat-tile, .p-dark .welcome-back-box { background: rgba(15, 23, 42, 0.6); border-color: rgba(255,255,255,0.08); }
 .p-dark .welcome-back-box { background: rgba(30, 41, 59, 0.5); }
 .p-dark .orbit-ring { border-color: rgba(255,255,255,0.05); }
-
-.p-dark .github-badge { background: rgba(30, 41, 59, 0.4); border-color: rgba(255, 255, 255, 0.08); }
-.p-dark .github-badge:hover { background: rgba(30, 41, 59, 0.8); border-color: rgba(255, 255, 255, 0.15); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
-.p-dark .github-icon { background: white; color: #0f172a; }
 </style>

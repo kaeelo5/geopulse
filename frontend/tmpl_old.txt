@@ -1,0 +1,66 @@
+<template>
+  <div class="home-page split-page">
+    <main class="auth-panel">
+      <header class="auth-header">
+        <div class="logo-container">
+          <img src="/geopulse-logo.svg" alt="GeoPulse" class="nav-logo" />
+          <span class="logo-text">GeoPulse</span>
+        </div>
+        <DarkModeSwitcher class="theme-button" />
+      </header>
+
+      <div class="auth-content">
+        <div class="auth-center">
+          <div v-if="isResolvingAuth" class="status-card loading-card">
+            <i class="pi pi-spin pi-spinner"></i>
+            <h2>Preparing your workspace</h2>
+            <p>Checking authentication and available sign-in options.</p>
+          </div>
+
+          <div v-else-if="!authStore.isAuthenticated" class="status-card guest-card">
+            <p class="card-eyebrow">Get started</p>
+            <h2 class="card-title">Welcome to GeoPulse</h2>
+            <p class="card-subtitle">Choose how you want to enter the app.</p>
+
+            <div v-if="!isLoginAvailable && !isRegistrationAvailable" class="status-message status-warning">
+              <i class="pi pi-lock"></i>
+              <div>
+                <h3>Access is temporarily unavailable</h3>
+                <p>Login and registration are disabled.</p>
+              </div>
+            </div>
+
+            <template v-else>
+              <div v-if="showRegistrationDisabledNotice" class="status-message status-info">
+                <i class="pi pi-info-circle"></i>
+                <div>
+                  <h3>Registration is disabled</h3>
+                  <p>Existing users can still sign in.</p>
+                </div>
+              </div>
+
+              <div class="cta-group">
+                <Button
+                  v-if="isRegistrationAvailable"
+                  label="Start Your Journey"
+                  icon="pi pi-arrow-right"
+                  as="router-link"
+                  to="/register"
+                  class="cta-button cta-primary"
+                  size="large"
+                />
+
+                <Button
+                  v-if="isLoginAvailable"
+                  label="Sign In"
+                  icon="pi pi-sign-in"
+                  as="router-link"
+                  to="/login"
+                  :severity="isRegistrationAvailable ? 'secondary' : undefined"
+                  :outlined="isRegistrationAvailable"
+                  class="cta-button"
+                  :class="isRegistrationAvailable ? 'cta-secondary' : 'cta-primary'"
+                  size="large"
+                />
+              </div>
+            </template>
