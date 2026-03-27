@@ -47,6 +47,22 @@
               <div class="hero-eyebrow">Self-hosted location timeline</div>
             <h1 class="hero-title" v-html="heroTitle"></h1>
             <p class="hero-subtitle" v-if="!isMobileViewport">GeoPulse turns raw GPS points into stays, trips, maps, and insights while your data stays under your control.</p>
+
+            <div class="hero-visual mobile-orbit" v-if="isMobileViewport">
+              <div class="visual-showcase">
+                <div class="orbit-ring ring-1"></div>
+                <div class="orbit-ring ring-2"></div>
+                <div class="orbit-ring ring-3"></div>
+                <img src="/geopulse-logo.svg" alt="GeoPulse logo" class="massive-logo" />
+                <div class="feature-chip chip-1"><div class="chip-icon"><i class="pi pi-send"></i></div><span>Live Tracking</span></div>
+                <div class="feature-chip chip-2"><div class="chip-icon"><i class="pi pi-download"></i></div><span>Smart Import</span></div>
+                <div class="feature-chip chip-3"><div class="chip-icon"><i class="pi pi-calendar"></i></div><span>Auto-Timeline</span></div>
+                <div class="feature-chip chip-4"><div class="chip-icon"><i class="pi pi-chart-line"></i></div><span>Deep Insights</span></div>
+                <div class="feature-chip chip-5"><div class="chip-icon"><i class="pi pi-images"></i></div><span>Immich Integration</span></div>
+                <div class="feature-chip chip-6"><div class="chip-icon"><i class="pi pi-shield"></i></div><span>SSO and Roles</span></div>
+                <div class="feature-chip chip-7"><div class="chip-icon"><i class="pi pi-map-marker"></i></div><span>Geofences</span></div>
+              </div>
+            </div>
             
             <div class="hero-ctas" v-if="!isResolvingAuth">
               <template v-if="!authStore.isAuthenticated">
@@ -79,7 +95,7 @@
 
           </div>
 
-          <div class="hero-visual">
+          <div class="hero-visual" v-if="!isMobileViewport">
             <div class="visual-showcase">
               <div class="orbit-ring ring-1"></div>
               <div class="orbit-ring ring-2"></div>
@@ -99,59 +115,138 @@
         <div class="feature-panel-wrapper" v-if="!isResolvingAuth && !authStore.isAuthenticated"
              @mouseenter="stopFeatureAutoPlay"
              @mouseleave="startFeatureAutoPlay">
-          <aside class="deployment-panel" aria-label="Platform details">
-            <div class="deployment-panel-header">
-              <p class="feature-panel-kicker">Deployment Options</p>
-            </div>
-            <div class="deployment-panel-body">
-              <p class="deployment-summary">Self-hosted location tracking and analysis on infrastructure you control.</p>
-              <div class="deployment-chip-grid">
-                <div class="deployment-chip"><i class="pi pi-box"></i><span>Docker</span></div>
-                <div class="deployment-chip"><i class="pi pi-microchip"></i><span>Raspberry Pi</span></div>
-                <div class="deployment-chip"><i class="pi pi-cloud"></i><span>Kubernetes</span></div>
-                <div class="deployment-chip"><i class="pi pi-server"></i><span>Helm</span></div>
-              </div>
-              <ul class="deployment-points">
-                <li><i class="pi pi-check-circle"></i><span>Deploy with Docker Compose or Kubernetes Helm.</span></li>
-                <li><i class="pi pi-check-circle"></i><span>AMD64 and ARM64 support.</span></li>
-                <li><i class="pi pi-check-circle"></i><span>Optional MQTT broker for OwnTracks workflows.</span></li>
-                <li><i class="pi pi-check-circle"></i><span>Images available on Docker Hub and GHCR.</span></li>
-              </ul>
-            </div>
-          </aside>
-
-          <section class="feature-panel" :class="activeFeature ? activeFeature.colorClass : ''" aria-label="Explore GeoPulse">
-            <div class="feature-panel-header">
-              <p class="feature-panel-kicker">Explore GeoPulse</p>
-              <div class="feature-tabs" role="tablist" aria-label="GeoPulse features">
-                <button
-                  v-for="feature in features"
-                  :key="feature.id"
-                  type="button"
-                  class="feature-tab"
-                  :class="{ active: activeFeatureId === feature.id }"
-                  :aria-selected="activeFeatureId === feature.id"
-                  @click="setActiveFeature(feature.id)">
-                  <i :class="feature.icon"></i>
-                  <span>{{ feature.tabLabel }}</span>
-                </button>
-              </div>
-            </div>
-            <transition name="fade" mode="out-in">
-              <div v-if="activeFeature" :key="activeFeature.id" class="feature-panel-body">
-                <div class="feature-panel-copy">
-                  <h3>{{ activeFeature.title }}</h3>
-                  <p>{{ activeFeature.description }}</p>
-                  <ul class="feature-highlight-list">
-                    <li v-for="point in activeFeature.highlights" :key="point">
-                      <i class="pi pi-check-circle"></i>
-                      <span>{{ point }}</span>
-                    </li>
-                  </ul>
+          <template v-if="isMobileViewport">
+            <section class="feature-panel mobile-combined-panel" :class="activeFeature ? activeFeature.colorClass : ''" aria-label="Explore GeoPulse and deployment">
+              <div class="feature-panel-header mobile-panel-header">
+                <div class="mobile-panel-tab-switch" role="tablist" aria-label="Mobile section tabs">
+                  <button
+                    type="button"
+                    class="mobile-panel-tab"
+                    :class="{ active: mobileShowcaseTab === 'features' }"
+                    :aria-selected="mobileShowcaseTab === 'features'"
+                    @click="mobileShowcaseTab = 'features'">
+                    <i class="pi pi-compass"></i>
+                    <span>Features</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="mobile-panel-tab"
+                    :class="{ active: mobileShowcaseTab === 'deployment' }"
+                    :aria-selected="mobileShowcaseTab === 'deployment'"
+                    @click="mobileShowcaseTab = 'deployment'">
+                    <i class="pi pi-server"></i>
+                    <span>Deployment</span>
+                  </button>
                 </div>
               </div>
-            </transition>
-          </section>
+
+              <template v-if="mobileShowcaseTab === 'features'">
+                <div class="feature-panel-header feature-panel-header-inner">
+                  <div class="feature-tabs" role="tablist" aria-label="GeoPulse features">
+                    <button
+                      v-for="feature in features"
+                      :key="feature.id"
+                      type="button"
+                      class="feature-tab"
+                      :class="{ active: activeFeatureId === feature.id }"
+                      :aria-selected="activeFeatureId === feature.id"
+                      @click="setActiveFeature(feature.id)">
+                      <i :class="feature.icon"></i>
+                      <span>{{ feature.tabLabel }}</span>
+                    </button>
+                  </div>
+                </div>
+                <transition name="fade" mode="out-in">
+                  <div v-if="activeFeature" :key="activeFeature.id" class="feature-panel-body">
+                    <div class="feature-panel-copy">
+                      <h3>{{ activeFeature.title }}</h3>
+                      <p>{{ activeFeature.description }}</p>
+                      <ul class="feature-highlight-list">
+                        <li v-for="point in activeFeature.highlights" :key="point">
+                          <i class="pi pi-check-circle"></i>
+                          <span>{{ point }}</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </transition>
+              </template>
+
+              <template v-else>
+                <div class="deployment-panel-body mobile-deployment-body">
+                  <p class="deployment-summary">Self-hosted location tracking and analysis on infrastructure you control.</p>
+                  <div class="deployment-chip-grid">
+                    <div class="deployment-chip"><i class="pi pi-box"></i><span>Docker</span></div>
+                    <div class="deployment-chip"><i class="pi pi-microchip"></i><span>Raspberry Pi</span></div>
+                    <div class="deployment-chip"><i class="pi pi-cloud"></i><span>Kubernetes</span></div>
+                    <div class="deployment-chip"><i class="pi pi-server"></i><span>Helm</span></div>
+                  </div>
+                  <ul class="deployment-points">
+                    <li><i class="pi pi-check-circle"></i><span>Deploy with Docker Compose or Kubernetes Helm.</span></li>
+                    <li><i class="pi pi-check-circle"></i><span>AMD64 and ARM64 support.</span></li>
+                    <li><i class="pi pi-check-circle"></i><span>Optional MQTT broker for OwnTracks workflows.</span></li>
+                    <li><i class="pi pi-check-circle"></i><span>Images available on Docker Hub and GHCR.</span></li>
+                  </ul>
+                </div>
+              </template>
+            </section>
+          </template>
+
+          <template v-else>
+            <aside class="deployment-panel" aria-label="Platform details">
+              <div class="deployment-panel-header">
+                <p class="feature-panel-kicker">Deployment Options</p>
+              </div>
+              <div class="deployment-panel-body">
+                <p class="deployment-summary">Self-hosted location tracking and analysis on infrastructure you control.</p>
+                <div class="deployment-chip-grid">
+                  <div class="deployment-chip"><i class="pi pi-box"></i><span>Docker</span></div>
+                  <div class="deployment-chip"><i class="pi pi-microchip"></i><span>Raspberry Pi</span></div>
+                  <div class="deployment-chip"><i class="pi pi-cloud"></i><span>Kubernetes</span></div>
+                  <div class="deployment-chip"><i class="pi pi-server"></i><span>Helm</span></div>
+                </div>
+                <ul class="deployment-points">
+                  <li><i class="pi pi-check-circle"></i><span>Deploy with Docker Compose or Kubernetes Helm.</span></li>
+                  <li><i class="pi pi-check-circle"></i><span>AMD64 and ARM64 support.</span></li>
+                  <li><i class="pi pi-check-circle"></i><span>Optional MQTT broker for OwnTracks workflows.</span></li>
+                  <li><i class="pi pi-check-circle"></i><span>Images available on Docker Hub and GHCR.</span></li>
+                </ul>
+              </div>
+            </aside>
+
+            <section class="feature-panel" :class="activeFeature ? activeFeature.colorClass : ''" aria-label="Explore GeoPulse">
+              <div class="feature-panel-header">
+                <p class="feature-panel-kicker">Explore GeoPulse</p>
+                <div class="feature-tabs" role="tablist" aria-label="GeoPulse features">
+                  <button
+                    v-for="feature in features"
+                    :key="feature.id"
+                    type="button"
+                    class="feature-tab"
+                    :class="{ active: activeFeatureId === feature.id }"
+                    :aria-selected="activeFeatureId === feature.id"
+                    @click="setActiveFeature(feature.id)">
+                    <i :class="feature.icon"></i>
+                    <span>{{ feature.tabLabel }}</span>
+                  </button>
+                </div>
+              </div>
+              <transition name="fade" mode="out-in">
+                <div v-if="activeFeature" :key="activeFeature.id" class="feature-panel-body">
+                  <div class="feature-panel-copy">
+                    <h3>{{ activeFeature.title }}</h3>
+                    <p>{{ activeFeature.description }}</p>
+                    <ul class="feature-highlight-list">
+                      <li v-for="point in activeFeature.highlights" :key="point">
+                        <i class="pi pi-check-circle"></i>
+                        <span>{{ point }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </transition>
+            </section>
+          </template>
         </div>
 
       </section>
@@ -203,6 +298,7 @@ const latestGpsUpdateLabel = ref('')
 const distanceTodayLabel = ref('')
 const timeMovingTodayLabel = ref('')
 const appVersion = ref('')
+const mobileShowcaseTab = ref('features')
 
 const activeFeatureId = ref(1)
 
@@ -498,16 +594,31 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   .hero-visual { min-height: 450px; margin-top: 2rem; margin-bottom: 1rem; } 
   .visual-showcase { transform: scale(0.85); transform-origin: center; }
   .massive-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-  .feature-panel-wrapper { margin-top: 0.2rem; grid-template-columns: 1fr; gap: 0.85rem; }
-  .feature-panel { order: 1; }
-  .deployment-panel { order: 2; }
 }
 @media (max-width: 767px) {
     .hero-container { gap: 1.5rem; text-align: center; }
     .hero-content { display: flex; flex-direction: column; align-items: center; }
+    .hero-visual.mobile-orbit {
+      min-height: 360px;
+      width: 100%;
+      margin: 0.2rem 0 1rem;
+      overflow: visible;
+    }
+    .hero-visual.mobile-orbit .visual-showcase {
+      transform: scale(0.64);
+      transform-origin: center;
+    }
+    .hero-visual.mobile-orbit .massive-logo {
+      width: 190px;
+      height: 190px;
+      opacity: 1;
+      z-index: 16;
+      filter: drop-shadow(0 16px 34px rgba(37, 99, 235, 0.28));
+    }
+  .hero-visual.mobile-orbit .ring-3 { display: none; }
     .hero-actions { justify-content: center; width: 100%; flex-direction: column; gap: 1rem; }
     .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
-    .social-proof { align-items: center; }
+    .social-proof { align-items: center; margin-bottom: 1.1rem; }
     .social-proof-text { text-align: center; margin-left: 0; }
     
 .hero-visual { display: flex; min-height: 380px; margin-top: 1rem; margin-bottom: 0; overflow: visible; align-items: center; justify-content: center; }
@@ -565,6 +676,10 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .deployment-points i { font-size: 0.86rem; color: #2563eb; margin-top: 0.1rem; }
 
 .feature-panel-kicker { margin: 0 0 0.75rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--home-text-secondary); }
+.mobile-panel-header { padding: 0.65rem 0.95rem 0.65rem; }
+.mobile-panel-tab-switch { display: none; }
+.feature-panel-header-inner { border-top: 1px solid rgba(203, 213, 225, 0.52); }
+.mobile-deployment-body { border-top: 1px solid rgba(203, 213, 225, 0.52); }
 .feature-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .feature-tab { border: 1px solid rgba(203, 213, 225, 0.9); background: rgba(255, 255, 255, 0.9); color: #334155; border-radius: 0.75rem; height: 2.5rem; padding: 0 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: all 0.25s ease; }
 .feature-tab i { font-size: 0.92rem; color: #64748b; }
@@ -581,11 +696,72 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .feature-highlight-list i { font-size: 0.9rem; color: var(--feature-accent); margin-top: 0.08rem; }
 
 @media (max-width: 1023px) {
+  .feature-panel-wrapper {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    margin-top: 0.2rem;
+    gap: 0.85rem;
+  }
+  .feature-panel,
+  .deployment-panel {
+    width: 100%;
+    max-width: 100%;
+  }
+  .feature-panel { order: 1; }
+  .deployment-panel { order: 2; }
   .feature-panel { max-width: 100%; }
   .feature-tab { height: 2.35rem; padding: 0 0.7rem; font-size: 0.8rem; }
 }
 
 @media (max-width: 767px) {
+  .feature-panel-wrapper {
+    margin-top: 0.35rem;
+    padding-top: 0;
+    gap: 0.75rem;
+  }
+  .mobile-panel-tab-switch {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    background: rgba(226, 232, 240, 0.48);
+    border: 1px solid rgba(203, 213, 225, 0.7);
+    border-radius: 0.85rem;
+    padding: 0.35rem;
+    margin-bottom: 0.5rem;
+  }
+  .mobile-panel-tab {
+    border: 1px solid transparent;
+    background: transparent;
+    color: #334155;
+    border-radius: 0.65rem;
+    height: 2.65rem;
+    padding: 0.5rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mobile-panel-tab:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.55);
+  }
+  .mobile-panel-tab.active {
+    background: #ffffff;
+    border-color: transparent;
+    color: #1e40af;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.15);
+  }
+  .mobile-panel-tab.active i { color: #1e40af; }
+  .deployment-panel-body { padding: 0.95rem; }
+  .deployment-chip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .deployment-chip {
+    white-space: normal;
+    text-align: left;
+    min-height: 2.2rem;
+  }
   .feature-panel-header { padding: 0.95rem 0.95rem 0.75rem; }
   .feature-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
   .feature-tab { justify-content: center; }
@@ -663,6 +839,29 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .p-dark .feature-tab:hover { border-color: rgba(96, 165, 250, 0.6); color: #e2e8f0; }
 .p-dark .feature-tab.active { background: var(--feature-accent); border-color: var(--feature-accent); color: #ffffff; box-shadow: 0 8px 18px var(--feature-accent-shadow); }
 .p-dark .feature-tab.active i { color: #dbeafe; }
+.p-dark .feature-panel-header-inner,
+.p-dark .mobile-deployment-body { border-top-color: rgba(148, 163, 184, 0.2); }
+.p-dark .mobile-panel-tab-switch {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+.p-dark .mobile-panel-tab {
+  background: transparent;
+  border-color: transparent;
+  color: #cbd5e1;
+}
+.p-dark .mobile-panel-tab:hover:not(.active) {
+  background: rgba(71, 85, 105, 0.35);
+}
+.p-dark .mobile-panel-tab.active {
+  background: #1e293b;
+  border-color: transparent;
+  color: #60a5fa;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+.p-dark .mobile-panel-tab.active i {
+  color: #60a5fa;
+}
 .p-dark .feature-highlight-list li { color: #94a3b8; border-color: rgba(148, 163, 184, 0.32); background: linear-gradient(90deg, var(--feature-accent-soft), rgba(15, 23, 42, 0.14)); }
 .p-dark .feature-highlight-list i { color: var(--feature-accent); }
 </style>
