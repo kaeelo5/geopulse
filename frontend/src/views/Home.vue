@@ -187,19 +187,7 @@
                       <i class="pi pi-book"></i><span>Initial setup guide</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
                     </a>
                   </template>
-                  <!-- Become Admin (authenticated, non-admin) -->
-                  <template v-else-if="leftPanelMode === 'become-admin'">
-                    <p class="ctx-summary">You're signed in but don't have admin access yet.</p>
-                    <ol class="ctx-steps">
-                      <li><span class="step-num">1</span><span>Add this to your <code>.env</code> file:</span></li>
-                      <li class="step-code-item"><code class="ctx-env-code">GEOPULSE_ADMIN_EMAIL=you@example.com</code></li>
-                      <li><span class="step-num">2</span><span>Restart the container and sign back in</span></li>
-                    </ol>
-                    <a href="https://tess1o.github.io/geopulse/docs/system-administration/initial-setup" target="_blank" rel="noopener noreferrer" class="ctx-docs-link">
-                      <i class="pi pi-book"></i><span>Admin setup docs</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
-                    </a>
-                  </template>
-                  <!-- What's New (admin) -->
+                  <!-- What's New (authenticated) -->
                   <template v-else>
                     <p class="ctx-summary">You're all set. GeoPulse is up and running.</p>
                     <div class="whats-new-version">
@@ -237,19 +225,7 @@
                     <i class="pi pi-book"></i><span>Initial setup guide</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
                   </a>
                 </template>
-                <!-- Become Admin (authenticated, non-admin) -->
-                <template v-else-if="leftPanelMode === 'become-admin'">
-                  <p class="ctx-summary">You're signed in but don't have admin access yet.</p>
-                  <ol class="ctx-steps">
-                    <li><span class="step-num">1</span><span>Add this to your <code>.env</code> file:</span></li>
-                    <li class="step-code-item"><code class="ctx-env-code">GEOPULSE_ADMIN_EMAIL=you@example.com</code></li>
-                    <li><span class="step-num">2</span><span>Restart the container and sign back in</span></li>
-                  </ol>
-                  <a href="https://tess1o.github.io/geopulse/docs/system-administration/initial-setup" target="_blank" rel="noopener noreferrer" class="ctx-docs-link">
-                    <i class="pi pi-book"></i><span>Admin setup docs</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
-                  </a>
-                </template>
-                <!-- What's New (admin) -->
+                <!-- What's New (authenticated) -->
                 <template v-else>
                   <p class="ctx-summary">You're all set. GeoPulse is up and running.</p>
                   <div class="whats-new-version">
@@ -448,25 +424,21 @@ const activeFeature = computed(() => features.find(f => f.id === activeFeatureId
 // Left panel mode: drives which content block renders in the context-aware aside
 const leftPanelMode = computed(() => {
   if (!authStore.isAuthenticated) return 'first-steps'
-  if (!authStore.isAdmin) return 'become-admin'
   return 'whats-new'
 })
 
 const leftPanelKicker = computed(() => {
   if (leftPanelMode.value === 'first-steps') return 'First Steps'
-  if (leftPanelMode.value === 'become-admin') return 'Become Admin'
   return "What's New"
 })
 
 const leftPanelIcon = computed(() => {
   if (leftPanelMode.value === 'first-steps') return 'pi pi-list-check'
-  if (leftPanelMode.value === 'become-admin') return 'pi pi-shield'
   return 'pi pi-sparkles'
 })
 
 const leftPanelMobileLabel = computed(() => {
   if (leftPanelMode.value === 'first-steps') return 'Setup'
-  if (leftPanelMode.value === 'become-admin') return 'Admin'
   return "What's New"
 })
 
