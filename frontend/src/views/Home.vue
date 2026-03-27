@@ -599,13 +599,13 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     .hero-container { gap: 1.5rem; text-align: center; }
     .hero-content { display: flex; flex-direction: column; align-items: center; }
     .hero-visual.mobile-orbit {
-      min-height: 360px;
+      min-height: 420px;
       width: 100%;
-      margin: 0.2rem 0 1rem;
+      margin: 0.2rem 0 0.5rem;
       overflow: visible;
     }
     .hero-visual.mobile-orbit .visual-showcase {
-      transform: scale(0.64);
+      transform: scale(0.72);
       transform-origin: center;
     }
     .hero-visual.mobile-orbit .massive-logo {
