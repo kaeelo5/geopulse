@@ -113,11 +113,11 @@
           </div>
         </div>
 
-        <div class="feature-panel-wrapper" v-if="!isResolvingAuth && !authStore.isAuthenticated"
+        <div class="feature-panel-wrapper" v-if="!isResolvingAuth"
              @mouseenter="stopFeatureAutoPlay"
              @mouseleave="startFeatureAutoPlay">
           <template v-if="isMobileViewport">
-            <section class="feature-panel mobile-combined-panel" :class="activeFeature ? activeFeature.colorClass : ''" aria-label="Explore GeoPulse and deployment">
+            <section class="feature-panel mobile-combined-panel" :class="activeFeature ? activeFeature.colorClass : ''" aria-label="Explore GeoPulse">
               <div class="feature-panel-header mobile-panel-header">
                 <div class="mobile-panel-tab-switch" role="tablist" aria-label="Mobile section tabs">
                   <button
@@ -132,11 +132,11 @@
                   <button
                     type="button"
                     class="mobile-panel-tab"
-                    :class="{ active: mobileShowcaseTab === 'deployment' }"
-                    :aria-selected="mobileShowcaseTab === 'deployment'"
-                    @click="mobileShowcaseTab = 'deployment'">
-                    <i class="pi pi-server"></i>
-                    <span>Deployment</span>
+                    :class="{ active: mobileShowcaseTab === 'guide' }"
+                    :aria-selected="mobileShowcaseTab === 'guide'"
+                    @click="mobileShowcaseTab = 'guide'">
+                    <i :class="leftPanelIcon"></i>
+                    <span>{{ leftPanelMobileLabel }}</span>
                   </button>
                 </div>
               </div>
@@ -174,44 +174,95 @@
               </template>
 
               <template v-else>
-                <div class="deployment-panel-body mobile-deployment-body">
-                  <p class="deployment-summary">Self-hosted location tracking and analysis on infrastructure you control.</p>
-                  <div class="deployment-chip-grid">
-                    <div class="deployment-chip"><i class="pi pi-box"></i><span>Docker</span></div>
-                    <div class="deployment-chip"><i class="pi pi-microchip"></i><span>Raspberry Pi</span></div>
-                    <div class="deployment-chip"><i class="pi pi-cloud"></i><span>Kubernetes</span></div>
-                    <div class="deployment-chip"><i class="pi pi-server"></i><span>Helm</span></div>
-                  </div>
-                  <ul class="deployment-points">
-                    <li><i class="pi pi-check-circle"></i><span>Deploy with Docker Compose or Kubernetes Helm.</span></li>
-                    <li><i class="pi pi-check-circle"></i><span>AMD64 and ARM64 support.</span></li>
-                    <li><i class="pi pi-check-circle"></i><span>Optional MQTT broker for OwnTracks workflows.</span></li>
-                    <li><i class="pi pi-check-circle"></i><span>Images available on Docker Hub and GHCR.</span></li>
-                  </ul>
+                <div class="ctx-panel-body mobile-ctx-body">
+                  <!-- First Steps (unauthenticated) -->
+                  <template v-if="leftPanelMode === 'first-steps'">
+                    <p class="ctx-summary">You're running GeoPulse. Here's how to finish setting up.</p>
+                    <ol class="ctx-steps">
+                      <li><span class="step-num">1</span><span>Register an account at <strong>/register</strong></span></li>
+                      <li><span class="step-num">2</span><span>Add <code>GEOPULSE_ADMIN_EMAIL=you@example.com</code> to your <code>.env</code></span></li>
+                      <li><span class="step-num">3</span><span>Restart the container and sign back in</span></li>
+                    </ol>
+                    <a href="https://tess1o.github.io/geopulse/docs/system-administration/initial-setup" target="_blank" rel="noopener noreferrer" class="ctx-docs-link">
+                      <i class="pi pi-book"></i><span>Initial setup guide</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
+                    </a>
+                  </template>
+                  <!-- Become Admin (authenticated, non-admin) -->
+                  <template v-else-if="leftPanelMode === 'become-admin'">
+                    <p class="ctx-summary">You're signed in but don't have admin access yet.</p>
+                    <ol class="ctx-steps">
+                      <li><span class="step-num">1</span><span>Add this to your <code>.env</code> file:</span></li>
+                      <li class="step-code-item"><code class="ctx-env-code">GEOPULSE_ADMIN_EMAIL=you@example.com</code></li>
+                      <li><span class="step-num">2</span><span>Restart the container and sign back in</span></li>
+                    </ol>
+                    <a href="https://tess1o.github.io/geopulse/docs/system-administration/initial-setup" target="_blank" rel="noopener noreferrer" class="ctx-docs-link">
+                      <i class="pi pi-book"></i><span>Admin setup docs</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
+                    </a>
+                  </template>
+                  <!-- What's New (admin) -->
+                  <template v-else>
+                    <p class="ctx-summary">You're all set. GeoPulse is up and running.</p>
+                    <div class="whats-new-version">
+                      <span class="whats-new-badge">{{ navVersionBadge }}</span>
+                      <span class="whats-new-label">Current version</span>
+                    </div>
+                    <ul class="ctx-highlights">
+                      <li v-for="item in whatsNewHighlights" :key="item"><i class="pi pi-sparkles"></i><span>{{ item }}</span></li>
+                    </ul>
+                    <a href="https://github.com/tess1o/geopulse/releases" target="_blank" rel="noopener noreferrer" class="ctx-docs-link">
+                      <i class="pi pi-github"></i><span>View release notes</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
+                    </a>
+                  </template>
                 </div>
               </template>
             </section>
           </template>
 
           <template v-else>
-            <aside class="deployment-panel" aria-label="Platform details">
-              <div class="deployment-panel-header">
-                <p class="feature-panel-kicker">Deployment Options</p>
+            <aside class="ctx-panel" :class="`ctx-panel--${leftPanelMode}`" :aria-label="leftPanelKicker">
+              <div class="ctx-panel-header">
+                <p class="feature-panel-kicker">{{ leftPanelKicker }}</p>
               </div>
-              <div class="deployment-panel-body">
-                <p class="deployment-summary">Self-hosted location tracking and analysis on infrastructure you control.</p>
-                <div class="deployment-chip-grid">
-                  <div class="deployment-chip"><i class="pi pi-box"></i><span>Docker</span></div>
-                  <div class="deployment-chip"><i class="pi pi-microchip"></i><span>Raspberry Pi</span></div>
-                  <div class="deployment-chip"><i class="pi pi-cloud"></i><span>Kubernetes</span></div>
-                  <div class="deployment-chip"><i class="pi pi-server"></i><span>Helm</span></div>
-                </div>
-                <ul class="deployment-points">
-                  <li><i class="pi pi-check-circle"></i><span>Deploy with Docker Compose or Kubernetes Helm.</span></li>
-                  <li><i class="pi pi-check-circle"></i><span>AMD64 and ARM64 support.</span></li>
-                  <li><i class="pi pi-check-circle"></i><span>Optional MQTT broker for OwnTracks workflows.</span></li>
-                  <li><i class="pi pi-check-circle"></i><span>Images available on Docker Hub and GHCR.</span></li>
-                </ul>
+              <div class="ctx-panel-body">
+                <!-- First Steps (unauthenticated) -->
+                <template v-if="leftPanelMode === 'first-steps'">
+                  <p class="ctx-summary">You're running GeoPulse. Here's how to finish setting up.</p>
+                  <ol class="ctx-steps">
+                    <li><span class="step-num">1</span><span>Register an account at <strong>/register</strong></span></li>
+                    <li><span class="step-num">2</span><span>Add this to your <code>.env</code> file:</span></li>
+                    <li class="step-code-item"><code class="ctx-env-code">GEOPULSE_ADMIN_EMAIL=you@example.com</code></li>
+                    <li><span class="step-num">3</span><span>Restart the container and sign back in</span></li>
+                  </ol>
+                  <a href="https://tess1o.github.io/geopulse/docs/system-administration/initial-setup" target="_blank" rel="noopener noreferrer" class="ctx-docs-link">
+                    <i class="pi pi-book"></i><span>Initial setup guide</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
+                  </a>
+                </template>
+                <!-- Become Admin (authenticated, non-admin) -->
+                <template v-else-if="leftPanelMode === 'become-admin'">
+                  <p class="ctx-summary">You're signed in but don't have admin access yet.</p>
+                  <ol class="ctx-steps">
+                    <li><span class="step-num">1</span><span>Add this to your <code>.env</code> file:</span></li>
+                    <li class="step-code-item"><code class="ctx-env-code">GEOPULSE_ADMIN_EMAIL=you@example.com</code></li>
+                    <li><span class="step-num">2</span><span>Restart the container and sign back in</span></li>
+                  </ol>
+                  <a href="https://tess1o.github.io/geopulse/docs/system-administration/initial-setup" target="_blank" rel="noopener noreferrer" class="ctx-docs-link">
+                    <i class="pi pi-book"></i><span>Admin setup docs</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
+                  </a>
+                </template>
+                <!-- What's New (admin) -->
+                <template v-else>
+                  <p class="ctx-summary">You're all set. GeoPulse is up and running.</p>
+                  <div class="whats-new-version">
+                    <span class="whats-new-badge">{{ navVersionBadge }}</span>
+                    <span class="whats-new-label">Current version</span>
+                  </div>
+                  <ul class="ctx-highlights">
+                    <li v-for="item in whatsNewHighlights" :key="item"><i class="pi pi-sparkles"></i><span>{{ item }}</span></li>
+                  </ul>
+                  <a href="https://github.com/tess1o/geopulse/releases" target="_blank" rel="noopener noreferrer" class="ctx-docs-link">
+                    <i class="pi pi-github"></i><span>View release notes on GitHub</span><i class="pi pi-arrow-right ctx-docs-arrow"></i>
+                  </a>
+                </template>
               </div>
             </aside>
 
@@ -393,6 +444,39 @@ const features = [
 ]
 
 const activeFeature = computed(() => features.find(f => f.id === activeFeatureId.value))
+
+// Left panel mode: drives which content block renders in the context-aware aside
+const leftPanelMode = computed(() => {
+  if (!authStore.isAuthenticated) return 'first-steps'
+  if (!authStore.isAdmin) return 'become-admin'
+  return 'whats-new'
+})
+
+const leftPanelKicker = computed(() => {
+  if (leftPanelMode.value === 'first-steps') return 'First Steps'
+  if (leftPanelMode.value === 'become-admin') return 'Become Admin'
+  return "What's New"
+})
+
+const leftPanelIcon = computed(() => {
+  if (leftPanelMode.value === 'first-steps') return 'pi pi-list-check'
+  if (leftPanelMode.value === 'become-admin') return 'pi pi-shield'
+  return 'pi pi-sparkles'
+})
+
+const leftPanelMobileLabel = computed(() => {
+  if (leftPanelMode.value === 'first-steps') return 'Setup'
+  if (leftPanelMode.value === 'become-admin') return 'Admin'
+  return "What's New"
+})
+
+const whatsNewHighlights = [
+  'MQTT TLS support for secure external broker connections',
+  'Friends live location with real-time filter controls',
+  'Geofence improvements with smarter entry/exit detection',
+  'Geocoding retry logic with circuit-breaker protection',
+  'Timeline page fix for large date-range queries',
+]
 
 const heroTitle = computed(() => {
   return authStore.isAuthenticated ? 'Welcome back' : 'Self-Host Anywhere'
@@ -637,8 +721,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     .massive-logo { width: 160px; height: 160px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
     
   .feature-panel-wrapper { margin-top: 0.35rem; padding-top: 0; }
-  .deployment-panel-body { padding: 0.95rem; }
-  .deployment-chip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ctx-panel-body { padding: 0.95rem; }
   }
 
 .quick-stats-section { padding: 3rem 0; background: var(--home-bg); }
@@ -655,7 +738,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .quick-stat-value { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--home-text-primary); }
 
 .feature-panel-wrapper { width: 100%; max-width: 1400px; margin: -1.15rem auto 0; padding: 0; position: relative; z-index: 10; display: grid; grid-template-columns: minmax(320px, 0.38fr) minmax(0, 0.62fr); gap: 1rem; align-items: stretch; }
-.deployment-panel,
+.ctx-panel,
 .feature-panel { width: 100%; background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(203, 213, 225, 0.6); border-radius: 1rem; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06); overflow: hidden; }
 
 .feature-panel {
@@ -671,25 +754,44 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .feature-panel.chip-6-color { --feature-accent: #e11d48; --feature-accent-soft: rgba(225, 29, 72, 0.13); --feature-accent-shadow: rgba(225, 29, 72, 0.28); }
 .feature-panel.chip-7-color { --feature-accent: #4f46e5; --feature-accent-soft: rgba(79, 70, 229, 0.13); --feature-accent-shadow: rgba(79, 70, 229, 0.28); }
 
-.deployment-panel { display: flex; flex-direction: column; }
-.deployment-panel-header,
+/* ── Context-aware left panel ─────────────────────────────────────── */
+.ctx-panel { display: flex; flex-direction: column; }
+.ctx-panel-header,
 .feature-panel-header { padding: 0.92rem 1.1rem 0.72rem; border-bottom: 1px solid rgba(203, 213, 225, 0.55); background: rgba(248, 250, 252, 0.56); }
-.deployment-title { margin: 0; font-size: 1.12rem; line-height: 1.3; color: var(--home-text-primary); font-weight: 700; }
-.deployment-panel-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.85rem; }
-.deployment-summary { margin: 0; font-size: 0.9rem; line-height: 1.52; color: var(--home-text-secondary); }
-.deployment-chip-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
-.deployment-chip { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 0.72rem; padding: 0.45rem 0.55rem; border: 1px solid rgba(203, 213, 225, 0.76); background: rgba(248, 250, 252, 0.62); color: #334155; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
-.deployment-chip i { font-size: 0.82rem; opacity: 0.9; }
+.ctx-panel-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.85rem; }
+.mobile-ctx-body { border-top: 1px solid rgba(203, 213, 225, 0.52); padding: 0.95rem; display: flex; flex-direction: column; gap: 0.75rem; }
 
-.deployment-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
-.deployment-points li { display: flex; align-items: flex-start; gap: 0.45rem; font-size: 0.84rem; line-height: 1.45; color: var(--home-text-secondary); }
-.deployment-points i { font-size: 0.86rem; color: #2563eb; margin-top: 0.1rem; }
+.ctx-summary { margin: 0; font-size: 0.9rem; line-height: 1.55; color: var(--home-text-secondary); }
+
+/* Numbered steps list */
+.ctx-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.ctx-steps li { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.85rem; line-height: 1.5; color: var(--home-text-secondary); }
+.step-num { display: inline-flex; align-items: center; justify-content: center; width: 1.3rem; height: 1.3rem; min-width: 1.3rem; border-radius: 50%; background: rgba(37, 99, 235, 0.12); color: #2563eb; font-size: 0.7rem; font-weight: 700; }
+.ctx-steps code { font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; font-size: 0.78rem; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.18); border-radius: 0.35rem; padding: 0.05rem 0.35rem; color: #1d4ed8; }
+.ctx-steps strong { color: var(--home-text-primary); font-weight: 700; }
+.step-code-item { padding-left: 0 !important; }
+.ctx-env-code { display: block; font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; font-size: 0.78rem; background: rgba(15, 23, 42, 0.05); border: 1px solid rgba(203, 213, 225, 0.8); border-left: 3px solid #2563eb; border-radius: 0.45rem; padding: 0.45rem 0.65rem; color: #1e3a5f; word-break: break-all; width: 100%; }
+
+/* What's New version badge */
+.whats-new-version { display: flex; align-items: center; gap: 0.65rem; }
+.whats-new-badge { display: inline-flex; align-items: center; padding: 0.28rem 0.62rem; border-radius: 999px; background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.25); color: #7c3aed; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; }
+.whats-new-label { font-size: 0.82rem; color: var(--home-text-secondary); font-weight: 500; }
+
+/* Highlight bullets for What's New */
+.ctx-highlights { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.42rem; }
+.ctx-highlights li { display: flex; align-items: flex-start; gap: 0.45rem; font-size: 0.84rem; line-height: 1.45; color: var(--home-text-secondary); }
+.ctx-highlights i { font-size: 0.82rem; color: #7c3aed; margin-top: 0.12rem; flex-shrink: 0; }
+
+/* Docs / action link at bottom of panel */
+.ctx-docs-link { display: inline-flex; align-items: center; gap: 0.45rem; margin-top: auto; padding: 0.52rem 0.9rem; border-radius: 0.75rem; border: 1px solid rgba(203, 213, 225, 0.8); background: rgba(248, 250, 252, 0.7); color: var(--home-text-secondary); text-decoration: none; font-size: 0.83rem; font-weight: 600; transition: all 0.2s ease; }
+.ctx-docs-link i { font-size: 0.84rem; }
+.ctx-docs-arrow { margin-left: auto; opacity: 0.55; font-size: 0.76rem !important; }
+.ctx-docs-link:hover { background: rgba(255, 255, 255, 0.95); border-color: rgba(96, 165, 250, 0.6); color: #1e293b; transform: translateX(2px); }
 
 .feature-panel-kicker { margin: 0 0 0.75rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--home-text-secondary); }
 .mobile-panel-header { padding: 0.65rem 0.95rem 0.65rem; }
 .mobile-panel-tab-switch { display: none; }
 .feature-panel-header-inner { border-top: 1px solid rgba(203, 213, 225, 0.52); }
-.mobile-deployment-body { border-top: 1px solid rgba(203, 213, 225, 0.52); }
 .feature-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .feature-tab { border: 1px solid rgba(203, 213, 225, 0.9); background: rgba(255, 255, 255, 0.9); color: #334155; border-radius: 0.75rem; height: 2.5rem; padding: 0 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: all 0.25s ease; }
 .feature-tab i { font-size: 0.92rem; color: #64748b; }
@@ -713,12 +815,12 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     gap: 0.85rem;
   }
   .feature-panel,
-  .deployment-panel {
+  .ctx-panel {
     width: 100%;
     max-width: 100%;
   }
   .feature-panel { order: 1; }
-  .deployment-panel { order: 2; }
+  .ctx-panel { order: 2; }
   .feature-tab { height: 2.35rem; padding: 0 0.7rem; font-size: 0.8rem; }
 }
 
@@ -764,13 +866,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     box-shadow: 0 2px 8px rgba(30, 64, 175, 0.15);
   }
   .mobile-panel-tab.active i { color: #1e40af; }
-  .deployment-panel-body { padding: 0.95rem; }
-  .deployment-chip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .deployment-chip {
-    white-space: normal;
-    text-align: left;
-    min-height: 2.2rem;
-  }
+  .ctx-panel-body { padding: 0.95rem; }
   .feature-panel-header { padding: 0.95rem 0.95rem 0.75rem; }
   .feature-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
   .feature-tab { justify-content: center; }
@@ -832,17 +928,24 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .p-dark .github-badge:hover { background: rgba(30, 41, 59, 0.8); border-color: rgba(255, 255, 255, 0.15); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
 .p-dark .github-icon { background: white; color: #0f172a; }
 
-.p-dark .deployment-panel,
+.p-dark .ctx-panel,
 .p-dark .feature-panel { background: linear-gradient(145deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.68)); border-color: rgba(148, 163, 184, 0.26); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24); }
 
-.p-dark .deployment-panel-header,
+.p-dark .ctx-panel-header,
 .p-dark .feature-panel-header { border-bottom-color: rgba(148, 163, 184, 0.2); background: rgba(30, 41, 59, 0.5); }
 
-.p-dark .deployment-chip { background: rgba(15, 23, 42, 0.52); border-color: rgba(148, 163, 184, 0.42); color: #cbd5e1; }
-.p-dark .deployment-chip i { color: #94a3b8; }
-
-.p-dark .deployment-points li { color: #94a3b8; }
-.p-dark .deployment-points i { color: #60a5fa; }
+.p-dark .ctx-summary { color: #94a3b8; }
+.p-dark .ctx-steps li { color: #94a3b8; }
+.p-dark .ctx-steps code { background: rgba(96, 165, 250, 0.1); border-color: rgba(96, 165, 250, 0.25); color: #93c5fd; }
+.p-dark .ctx-steps strong { color: #f1f5f9; }
+.p-dark .ctx-env-code { background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.3); border-left-color: #60a5fa; color: #93c5fd; }
+.p-dark .step-num { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+.p-dark .whats-new-badge { background: rgba(167, 139, 250, 0.15); border-color: rgba(167, 139, 250, 0.3); color: #a78bfa; }
+.p-dark .whats-new-label { color: #94a3b8; }
+.p-dark .ctx-highlights li { color: #94a3b8; }
+.p-dark .ctx-highlights i { color: #a78bfa; }
+.p-dark .ctx-docs-link { background: rgba(30, 41, 59, 0.6); border-color: rgba(148, 163, 184, 0.3); color: #94a3b8; }
+.p-dark .ctx-docs-link:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(96, 165, 250, 0.5); color: #e2e8f0; }
 
 .p-dark .feature-tab { background: rgba(15, 23, 42, 0.85); border-color: rgba(148, 163, 184, 0.4); color: #cbd5e1; }
 .p-dark .feature-tab i { color: #94a3b8; }
@@ -850,7 +953,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .p-dark .feature-tab.active { background: var(--feature-accent); border-color: var(--feature-accent); color: #ffffff; box-shadow: 0 8px 18px var(--feature-accent-shadow); }
 .p-dark .feature-tab.active i { color: #dbeafe; }
 .p-dark .feature-panel-header-inner,
-.p-dark .mobile-deployment-body { border-top-color: rgba(148, 163, 184, 0.2); }
+.p-dark .mobile-ctx-body { border-top-color: rgba(148, 163, 184, 0.2); }
 .p-dark .mobile-panel-tab-switch {
   background: rgba(30, 41, 59, 0.6);
   border-color: rgba(148, 163, 184, 0.25);
