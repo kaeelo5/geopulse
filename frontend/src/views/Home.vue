@@ -709,7 +709,6 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   }
   .feature-panel { order: 1; }
   .deployment-panel { order: 2; }
-  .feature-panel { max-width: 100%; }
   .feature-tab { height: 2.35rem; padding: 0 0.7rem; font-size: 0.8rem; }
 }
 
