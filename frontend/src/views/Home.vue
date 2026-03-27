@@ -26,6 +26,7 @@
             </a>
             <span class="nav-version-badge" aria-label="Current version">{{ navVersionBadge }}</span>
           </div>
+          <span class="nav-version-badge nav-version-badge-mobile" aria-label="Current version">{{ navVersionBadge }}</span>
           <DarkModeSwitcher class="theme-button" />
           <div class="auth-actions" v-if="!isResolvingAuth">
             <template v-if="authStore.isAuthenticated">
@@ -512,6 +513,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .nav-link-pill i { font-size: 0.8rem; }
 .nav-link-pill:hover { color: #1e293b; border-color: rgba(148, 163, 184, 0.95); background: rgba(255, 255, 255, 0.95); transform: translateY(-1px); }
 .nav-version-badge { display: inline-flex; align-items: center; padding: 0.3rem 0.56rem; border-radius: 999px; border: 1px solid rgba(203, 213, 225, 0.9); background: rgba(255, 255, 255, 0.96); color: #7c3aed; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.03em; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); }
+.nav-version-badge-mobile { display: none; }
 
 @media (max-width: 1200px) {
   .nav-link-pill span { display: none; }
@@ -525,6 +527,14 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 
 @media (max-width: 860px) {
   .nav-resource-links { display: none; }
+  .nav-version-badge-mobile { display: inline-flex; }
+}
+
+@media (max-width: 560px) {
+  .nav-version-badge-mobile {
+    padding: 0.26rem 0.48rem;
+    font-size: 0.72rem;
+  }
 }
 .landing-main { flex: 1; }
 
@@ -765,6 +775,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   .feature-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
   .feature-tab { justify-content: center; }
   .feature-panel-body { padding: 0.95rem; min-height: auto; }
+  .feature-panel-copy h3 { font-size: 1.08rem; line-height: 1.35; }
   .feature-panel-copy p { font-size: 0.95rem; }
   .feature-highlight-list { grid-template-columns: 1fr; gap: 0.5rem; margin-top: 0.8rem; }
 }
