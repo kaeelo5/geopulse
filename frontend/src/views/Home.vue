@@ -7,6 +7,25 @@
           <span class="logo-text">GeoPulse</span>
         </div>
         <div class="nav-actions">
+          <div class="nav-resource-links" aria-label="Project resources">
+            <a
+              href="https://tess1o.github.io/geopulse/docs/getting-started/introduction"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="nav-link-pill">
+              <i class="pi pi-book"></i>
+              <span>Documentation</span>
+            </a>
+            <a
+              href="https://github.com/tess1o/geopulse"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="nav-link-pill">
+              <i class="pi pi-github"></i>
+              <span>GitHub</span>
+            </a>
+            <span class="nav-version-badge" aria-label="Current version">v1.23.0</span>
+          </div>
           <DarkModeSwitcher class="theme-button" />
           <div class="auth-actions" v-if="!isResolvingAuth">
             <template v-if="authStore.isAuthenticated">
@@ -25,7 +44,7 @@
       <section class="hero-section">
         <div class="hero-container">
           <div class="hero-content">
-            <div class="hero-eyebrow">Self-hosted location timeline</div>
+              <div class="hero-eyebrow">Self-hosted location timeline</div>
             <h1 class="hero-title" v-html="heroTitle"></h1>
             <p class="hero-subtitle" v-if="!isMobileViewport">GeoPulse turns raw GPS points into stays, trips, maps, and insights while your data stays under your control.</p>
             
@@ -72,36 +91,67 @@
               <div class="feature-chip chip-4"><div class="chip-icon"><i class="pi pi-chart-line"></i></div><span>Deep Insights</span></div>
               <div class="feature-chip chip-5"><div class="chip-icon"><i class="pi pi-images"></i></div><span>Immich Integration</span></div>
               <div class="feature-chip chip-6"><div class="chip-icon"><i class="pi pi-shield"></i></div><span>SSO and Roles</span></div>
+              <div class="feature-chip chip-7"><div class="chip-icon"><i class="pi pi-map-marker"></i></div><span>Geofences</span></div>
             </div>
           </div>
         </div>
 
-        <div class="dock-wrapper" v-if="!isResolvingAuth && !authStore.isAuthenticated"
-             @mouseenter="stopFeatureAutoPlay" 
+        <div class="feature-panel-wrapper" v-if="!isResolvingAuth && !authStore.isAuthenticated"
+             @mouseenter="stopFeatureAutoPlay"
              @mouseleave="startFeatureAutoPlay">
-          <div class="feature-dock">
-            <div class="dock-line"></div>
-            <div class="dock-items">
-              <div v-for="feature in features" :key="feature.id" 
-                   class="dock-item" 
-                   :class="{ active: activeFeatureId === feature.id }"
-                   @click="setActiveFeature(feature.id)">
-                <div class="dock-icon">
-                  <i :class="feature.icon"></i>
-                </div>
-                <div class="dock-tooltip">{{ feature.title }}</div>
-              </div>
+          <aside class="deployment-panel" aria-label="Platform details">
+            <div class="deployment-panel-header">
+              <p class="feature-panel-kicker">Deployment Options</p>
             </div>
-          </div>
+            <div class="deployment-panel-body">
+              <p class="deployment-summary">Self-hosted location tracking and analysis on infrastructure you control.</p>
+              <div class="deployment-chip-grid">
+                <div class="deployment-chip"><i class="pi pi-box"></i><span>Docker</span></div>
+                <div class="deployment-chip"><i class="pi pi-microchip"></i><span>Raspberry Pi</span></div>
+                <div class="deployment-chip"><i class="pi pi-cloud"></i><span>Kubernetes</span></div>
+                <div class="deployment-chip"><i class="pi pi-server"></i><span>Helm</span></div>
+              </div>
+              <ul class="deployment-points">
+                <li><i class="pi pi-check-circle"></i><span>Deploy with Docker Compose or Kubernetes Helm.</span></li>
+                <li><i class="pi pi-check-circle"></i><span>AMD64 and ARM64 support.</span></li>
+                <li><i class="pi pi-check-circle"></i><span>Optional MQTT broker for OwnTracks workflows.</span></li>
+                <li><i class="pi pi-check-circle"></i><span>Images available on Docker Hub and GHCR.</span></li>
+              </ul>
+            </div>
+          </aside>
 
-          <transition name="fade" mode="out-in">
-            <div v-if="activeFeature" :key="activeFeature.id" class="feature-showcase">
-              <div class="showcase-content">
-                <h3>{{ activeFeature.title }}</h3>
-                <p>{{ activeFeature.description }}</p>
+          <section class="feature-panel" :class="activeFeature ? activeFeature.colorClass : ''" aria-label="Explore GeoPulse">
+            <div class="feature-panel-header">
+              <p class="feature-panel-kicker">Explore GeoPulse</p>
+              <div class="feature-tabs" role="tablist" aria-label="GeoPulse features">
+                <button
+                  v-for="feature in features"
+                  :key="feature.id"
+                  type="button"
+                  class="feature-tab"
+                  :class="{ active: activeFeatureId === feature.id }"
+                  :aria-selected="activeFeatureId === feature.id"
+                  @click="setActiveFeature(feature.id)">
+                  <i :class="feature.icon"></i>
+                  <span>{{ feature.tabLabel }}</span>
+                </button>
               </div>
             </div>
-          </transition>
+            <transition name="fade" mode="out-in">
+              <div v-if="activeFeature" :key="activeFeature.id" class="feature-panel-body">
+                <div class="feature-panel-copy">
+                  <h3>{{ activeFeature.title }}</h3>
+                  <p>{{ activeFeature.description }}</p>
+                  <ul class="feature-highlight-list">
+                    <li v-for="point in activeFeature.highlights" :key="point">
+                      <i class="pi pi-check-circle"></i>
+                      <span>{{ point }}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </transition>
+          </section>
         </div>
 
       </section>
@@ -140,17 +190,13 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import DarkModeSwitcher from '@/components/DarkModeSwitcher.vue'
 import Button from 'primevue/button'
-import Card from 'primevue/card'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const isResolvingAuth = ref(true)
 const isLoginAvailable = ref(false)
-const isRegistrationAvailable = ref(false)
 const isMobileViewport = ref(false)
-const isDesktopViewport = ref(true)
-const showAllFeatures = ref(false)
 const continueDestination = ref({ path: '/app/timeline' })
 const latestGpsUpdateLabel = ref('')
 const distanceTodayLabel = ref('')
@@ -182,32 +228,79 @@ const setActiveFeature = (id) => {
 }
 
 const features = [
-  { id: 1, title: 'Real-time Tracking Sources', description: 'Ingest live points from OwnTracks (HTTP/MQTT), Overland, GPSLogger, Home Assistant, Traccar, and Colota.', icon: 'pi pi-send', colorClass: 'chip-1-color' },
-  { id: 2, title: 'Universal Import', description: 'Bulk import history from Google Timeline, GPX, GeoJSON, OwnTracks exports, and CSV.', icon: 'pi pi-download', colorClass: 'chip-2-color' },
-  { id: 3, title: 'Smart Timeline Detection', description: 'Convert raw points into stays, trips, and gaps with configurable sensitivity and movement logic.', icon: 'pi pi-calendar', colorClass: 'chip-3-color' },
-  { id: 4, title: 'Deep Insights', description: 'Explore distance, visit frequency, and movement patterns through dashboard and journey analytics.', icon: 'pi pi-chart-line', colorClass: 'chip-4-color' },
-  { id: 5, title: 'Immich Integration', description: 'Show Immich photos directly on your map and timeline to connect places with memories.', icon: 'pi pi-images', colorClass: 'chip-5-color' },
-  { id: 6, title: 'Sharing, Roles, and SSO', description: 'Use friend visibility controls, secure guest links, invitations, audit logs, and OIDC login.', icon: 'pi pi-shield', colorClass: 'chip-6-color' }
+  {
+    id: 1,
+    title: 'Real-time Tracking Sources',
+    tabLabel: 'Live Tracking',
+    description: 'Ingest live points from OwnTracks (HTTP/MQTT), Overland, GPSLogger, Home Assistant, Traccar, and Colota.',
+    highlights: ['Supports HTTP and MQTT ingest', 'Low-latency point updates', 'Works with existing mobile trackers'],
+    icon: 'pi pi-send',
+    colorClass: 'chip-1-color'
+  },
+  {
+    id: 2,
+    title: 'Universal Import',
+    tabLabel: 'Imports',
+    description: 'Bulk import history from Google Timeline, GPX, GeoJSON, OwnTracks exports, and CSV.',
+    highlights: ['Bring legacy history in one pass', 'Standard formats supported out of the box', 'Merge old and live data cleanly'],
+    icon: 'pi pi-download',
+    colorClass: 'chip-2-color'
+  },
+  {
+    id: 3,
+    title: 'Smart Timeline Detection',
+    tabLabel: 'Timeline',
+    description: 'Convert raw points into stays, trips, and gaps with configurable sensitivity and movement logic.',
+    highlights: ['Automatic trip and stay grouping', 'Sensitivity tuning for your movement pattern', 'Cleaner timeline with fewer manual edits'],
+    icon: 'pi pi-calendar',
+    colorClass: 'chip-3-color'
+  },
+  {
+    id: 4,
+    title: 'Deep Insights',
+    tabLabel: 'Insights + AI',
+    description: 'Explore distance, visit frequency, movement patterns, and ask natural-language questions about your travel history.',
+    highlights: ['Distance and frequency analytics', 'Behavior patterns over time', 'AI assistant via your OpenAI-compatible API key'],
+    icon: 'pi pi-chart-line',
+    colorClass: 'chip-4-color'
+  },
+  {
+    id: 5,
+    title: 'Immich Integration',
+    tabLabel: 'Immich',
+    description: 'Show Immich photos directly on your map and timeline to connect places with memories.',
+    highlights: ['Photos plotted on map context', 'Moments tied to places and trips', 'Works with self-hosted media flow'],
+    icon: 'pi pi-images',
+    colorClass: 'chip-5-color'
+  },
+  {
+    id: 6,
+    title: 'Sharing, Roles, and SSO',
+    tabLabel: 'SSO & Roles',
+    description: 'Use friend visibility controls, secure guest links, invitations, audit logs, and OIDC login.',
+    highlights: ['Role-based access controls', 'OIDC sign-in for managed teams', 'Safe sharing with guest visibility rules'],
+    icon: 'pi pi-shield',
+    colorClass: 'chip-6-color'
+  },
+  {
+    id: 7,
+    title: 'Geofences and Events',
+    tabLabel: 'Geofences',
+    description: 'Build smarter geofence automations in minutes, not hours.',
+    highlights: ['One rule can cover multiple people or devices', 'Faster event review with powerful filters and quick actions', 'Template setup with clear defaults, preview, and connection testing'],
+    icon: 'pi pi-map-marker',
+    colorClass: 'chip-7-color'
+  }
 ]
 
 const activeFeature = computed(() => features.find(f => f.id === activeFeatureId.value))
 
 const heroTitle = computed(() => {
-  return authStore.isAuthenticated ? 'Welcome back' : 'Your location, your data'
+  return authStore.isAuthenticated ? 'Welcome back' : 'Self-Host Anywhere'
 })
 
 const shouldShowQuickStats = computed(() => {
   return authStore.isAuthenticated && !isResolvingAuth.value
-})
-
-const visibleFeatures = computed(() => {
-  if (isDesktopViewport.value) return features
-  if (showAllFeatures.value) return features
-  return features.slice(0, 3)
-})
-
-const hasHiddenFeatures = computed(() => {
-  return features.length > 3 && !isDesktopViewport.value
 })
 
 const handleSignOut = async () => {
@@ -215,13 +308,8 @@ const handleSignOut = async () => {
   router.push('/')
 }
 
-const toggleFeatureVisibility = () => {
-  showAllFeatures.value = !showAllFeatures.value
-}
-
 const updateViewportState = () => {
   isMobileViewport.value = window.innerWidth < 768
-  isDesktopViewport.value = window.innerWidth >= 1024
 }
 
 const updateUserStats = () => {
@@ -237,7 +325,6 @@ onMounted(async () => {
   try {
     await authStore.resolveAuthentication()
     isLoginAvailable.value = authStore.loginAvailable
-    isRegistrationAvailable.value = authStore.registrationAvailable
   } finally {
     isResolvingAuth.value = false
   }
@@ -283,6 +370,40 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .logo-text { font-size: 1.1rem; font-weight: 700; color: var(--home-text-primary); letter-spacing: -0.02em; }
 .nav-actions { display: flex; align-items: center; gap: 1rem; }
 .auth-actions { display: flex; align-items: center; gap: 0.5rem; }
+.theme-button { display: inline-flex; }
+.theme-button :deep(.p-button) {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  background: rgba(255, 255, 255, 0.75);
+  color: #475569;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+.theme-button :deep(.p-button:hover) {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(148, 163, 184, 0.95);
+  color: #1e293b;
+}
+.nav-resource-links { display: inline-flex; align-items: center; gap: 0.45rem; }
+.nav-link-pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.36rem 0.66rem; border-radius: 999px; border: 1px solid rgba(203, 213, 225, 0.85); background: rgba(255, 255, 255, 0.7); color: var(--home-text-secondary); text-decoration: none; font-size: 0.79rem; font-weight: 600; transition: all 0.2s ease; }
+.nav-link-pill i { font-size: 0.8rem; }
+.nav-link-pill:hover { color: #1e293b; border-color: rgba(148, 163, 184, 0.95); background: rgba(255, 255, 255, 0.95); transform: translateY(-1px); }
+.nav-version-badge { display: inline-flex; align-items: center; padding: 0.3rem 0.56rem; border-radius: 999px; border: 1px solid rgba(203, 213, 225, 0.9); background: rgba(255, 255, 255, 0.96); color: #7c3aed; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.03em; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); }
+
+@media (max-width: 1200px) {
+  .nav-link-pill span { display: none; }
+  .nav-link-pill { padding: 0.38rem; width: 2rem; justify-content: center; }
+}
+
+@media (max-width: 980px) {
+  .nav-version-badge { display: none; }
+  .nav-resource-links { gap: 0.35rem; }
+}
+
+@media (max-width: 860px) {
+  .nav-resource-links { display: none; }
+}
 .landing-main { flex: 1; }
 
 .hero-section { padding: 3rem 1.5rem; background: var(--home-hero-gradient); position: relative; overflow: visible; }
@@ -310,7 +431,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   .star-count i { color: #eab308; margin-right: 0.2rem; }
   .fork-count i { margin-right: 0.2rem; }
   .separator { color: var(--home-text-secondary); opacity: 0.5; }
-  .social-proof-text { font-size: 0.9rem; color: var(--home-text-secondary); margin: 0; margin-left: 0.5rem; font-weight: 500; }
+  .social-proof-text { font-size: 0.88rem; color: var(--home-text-secondary); margin: 0; margin-left: 0.5rem; font-weight: 500; }
 
   .loading-auth { display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; color: var(--home-text-secondary); margin-top: 2rem; }
 
@@ -326,13 +447,14 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .ring-2 { width: 440px; height: 440px; border: 1px solid rgba(37, 99, 235, 0.14); animation-delay: -1.5s; } 
 .ring-3 { width: 620px; height: 620px; border: 1px dashed rgba(14, 165, 233, 0.2); animation-delay: -3s; }
 
-.feature-chip { --chip-base-transform: translateY(0); position: absolute; transform: var(--chip-base-transform); display: flex; align-items: center; gap: 0.6rem; background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(241, 248, 255, 0.92)); backdrop-filter: blur(12px); padding: 0.4rem 1rem 0.4rem 0.4rem; border-radius: 999px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1); border: 1px solid rgba(173, 202, 255, 0.45); font-weight: 600; font-size: 0.85rem; color: var(--home-text-primary); z-index: 10; white-space: nowrap; transition: transform 0.3s ease, box-shadow 0.3s ease; animation: orbitFloat 6s ease-in-out infinite; }
-.feature-chip:hover { transform: var(--chip-base-transform) scale(1.05); box-shadow: 0 10px 24px rgba(30, 64, 175, 0.16); animation-play-state: paused; z-index: 20; }
+.feature-chip { --chip-base-transform: translateY(0); position: absolute; transform: var(--chip-base-transform); display: flex; align-items: center; gap: 0.55rem; background: linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(241, 248, 255, 0.78)); backdrop-filter: blur(8px); padding: 0.34rem 0.82rem 0.34rem 0.34rem; border-radius: 999px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06); border: 1px solid rgba(173, 202, 255, 0.34); font-weight: 600; font-size: 0.78rem; color: var(--home-text-primary); z-index: 10; white-space: nowrap; transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; animation: orbitFloat 6s ease-in-out infinite; }
+.feature-chip:hover { transform: var(--chip-base-transform) scale(1.02); box-shadow: 0 8px 18px rgba(30, 64, 175, 0.1); border-color: rgba(96, 165, 250, 0.42); animation-play-state: paused; z-index: 20; }
 .chip-icon { width: 2rem; height: 2rem; border-radius: 50%; background: rgba(15, 118, 110, 0.1); color: var(--home-accent); display: flex; align-items: center; justify-content: center; }
 .chip-2 .chip-icon { background: rgba(37,99,235,0.1); color: #2563eb; } 
 .chip-4 .chip-icon { background: rgba(147,51,234,0.1); color: #9333ea; } 
 .chip-5 .chip-icon { background: rgba(234,88,12,0.1); color: #ea580c; } 
 .chip-6 .chip-icon { background: rgba(225,29,72,0.1); color: #e11d48; }
+.chip-7 .chip-icon { background: rgba(79,70,229,0.1); color: #4f46e5; }
 
 .chip-1 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 90px), calc(-50% - 107px)); animation-delay: 0s; animation-duration: 7s; } 
 .chip-2 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% + 135px), calc(-50% - 173px)); animation-delay: -1.5s; animation-duration: 8.5s; }
@@ -340,22 +462,37 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .chip-4 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 99px), calc(-50% + 99px)); animation-delay: -2s; animation-duration: 7.5s; }
 .chip-5 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 80px), calc(-50% + 205px)); animation-delay: -4.5s; animation-duration: 8s;}
 .chip-6 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 155px), calc(-50% - 155px)); animation-delay: -0.5s; animation-duration: 9s; }
+.chip-7 { top: 50%; left: 50%; --chip-base-transform: translate(calc(-50% - 232px), calc(-50% + 8px)); animation-delay: -5.2s; animation-duration: 8.2s; }
 
 @media (min-width: 1024px) {
   .hero-visual { min-height: 550px; }
+  .visual-showcase { transform: translateX(-84px); }
 }
 @media (max-width: 1023px) {
   .hero-visual { min-height: 450px; margin-top: 2rem; margin-bottom: 1rem; } 
   .visual-showcase { transform: scale(0.85); transform-origin: center; }
   .massive-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-  .dock-wrapper { margin-top: 2rem; }
+  .feature-panel-wrapper { margin-top: 0.2rem; grid-template-columns: 1fr; gap: 0.85rem; }
+  .feature-panel { order: 1; }
+  .deployment-panel { order: 2; }
 }
 @media (max-width: 767px) {
-  .hero-container { gap: 1.5rem; }
-  .hero-visual { min-height: 320px; margin-top: 1rem; overflow: visible; }
-  .visual-showcase { transform: scale(0.65); transform-origin: center; }
-  .dock-wrapper { margin-top: 1rem; }
-}
+    .hero-container { gap: 1.5rem; text-align: center; }
+    .hero-content { display: flex; flex-direction: column; align-items: center; }
+    .hero-actions { justify-content: center; width: 100%; flex-direction: column; gap: 1rem; }
+    .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
+    .social-proof { align-items: center; }
+    .social-proof-text { text-align: center; margin-left: 0; }
+    
+.hero-visual { display: flex; min-height: 380px; margin-top: 1rem; margin-bottom: 0; overflow: visible; align-items: center; justify-content: center; }
+    .visual-showcase { transform: scale(0.6); transform-origin: center; width: 100%; height: 100%; }
+    .visual-showcase::before { width: 400px; height: 400px; filter: blur(15px); background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 70%); }
+    .massive-logo { width: 160px; height: 160px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    
+  .feature-panel-wrapper { margin-top: 0.35rem; padding-top: 0; }
+  .deployment-panel-body { padding: 0.95rem; }
+  .deployment-chip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
 
 .quick-stats-section { padding: 3rem 0; background: var(--home-bg); }
 .content-wrapper { max-width: 1400px; margin: 0 auto; padding: 0 1.5rem; }
@@ -370,42 +507,75 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .quick-stat-label { margin: 0; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--home-text-secondary); }
 .quick-stat-value { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--home-text-primary); }
 
-.dock-wrapper { width: 100%; max-width: 1400px; margin: 5rem auto 0; padding: 0 1.5rem; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; }
-.feature-dock { position: relative; width: 100%; display: flex; justify-content: center; }
-  .dock-line { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.3) 20%, rgba(37, 99, 235, 0.3) 80%, transparent); z-index: 1; }
-  .dock-items { display: flex; gap: 1.5rem; position: relative; z-index: 2; align-items: center; }
-  .dock-item { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-  
-  .dock-icon { width: 3.5rem; height: 3.5rem; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1rem; border: 1px solid rgba(226, 232, 240, 0.8); display: flex; align-items: center; justify-content: center; color: var(--home-text-primary); font-size: 1.5rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); position: relative; overflow: hidden; }
-  .dock-icon::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(180deg, rgba(255,255,255,0.8), transparent); }
-  
-  .dock-item:hover .dock-icon { transform: translateY(-6px) scale(1.05); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1); border-color: rgba(96, 165, 250, 0.5); color: #2563eb; }
-  .dock-item.active .dock-icon { transform: translateY(-6px) scale(1.05); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.12); border-color: rgba(59, 130, 246, 0.6); color: #2563eb; background: #f8fafc; }
-  
-  .dock-tooltip { position: absolute; bottom: calc(100% + 12px); top: auto; background: white; color: #0f172a; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.05); opacity: 0; visibility: hidden; transform: translateY(5px); transition: all 0.3s ease; pointer-events: none; z-index: 100; }
-  .dock-item:hover .dock-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
+.feature-panel-wrapper { width: 100%; max-width: 1400px; margin: -1.15rem auto 0; padding: 0; position: relative; z-index: 10; display: grid; grid-template-columns: minmax(320px, 0.38fr) minmax(0, 0.62fr); gap: 1rem; align-items: stretch; }
+.deployment-panel,
+.feature-panel { width: 100%; background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(203, 213, 225, 0.6); border-radius: 1rem; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06); overflow: hidden; }
 
-  .feature-showcase { margin-top: 2rem; background: #ffffff; backdrop-filter: blur(20px); border: 1px solid rgba(203, 213, 225, 0.6); border-radius: 1rem; padding: 1.5rem 2rem; box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.03); text-align: center; position: relative; z-index: 2; width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 0.5rem; }
-  .p-dark .feature-showcase { background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9)); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.05); }
-  .feature-showcase h3 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--home-text-primary); }
-  .feature-showcase p { margin: 0; font-size: 1.05rem; line-height: 1.6; color: var(--home-text-secondary); }
+.feature-panel {
+  --feature-accent: #2563eb;
+  --feature-accent-soft: rgba(37, 99, 235, 0.11);
+  --feature-accent-shadow: rgba(37, 99, 235, 0.26);
+}
+.feature-panel.chip-1-color { --feature-accent: #0ea5e9; --feature-accent-soft: rgba(14, 165, 233, 0.13); --feature-accent-shadow: rgba(14, 165, 233, 0.3); }
+.feature-panel.chip-2-color { --feature-accent: #2563eb; --feature-accent-soft: rgba(37, 99, 235, 0.12); --feature-accent-shadow: rgba(37, 99, 235, 0.28); }
+.feature-panel.chip-3-color { --feature-accent: #0f766e; --feature-accent-soft: rgba(15, 118, 110, 0.12); --feature-accent-shadow: rgba(15, 118, 110, 0.28); }
+.feature-panel.chip-4-color { --feature-accent: #9333ea; --feature-accent-soft: rgba(147, 51, 234, 0.13); --feature-accent-shadow: rgba(147, 51, 234, 0.28); }
+.feature-panel.chip-5-color { --feature-accent: #ea580c; --feature-accent-soft: rgba(234, 88, 12, 0.13); --feature-accent-shadow: rgba(234, 88, 12, 0.28); }
+.feature-panel.chip-6-color { --feature-accent: #e11d48; --feature-accent-soft: rgba(225, 29, 72, 0.13); --feature-accent-shadow: rgba(225, 29, 72, 0.28); }
+.feature-panel.chip-7-color { --feature-accent: #4f46e5; --feature-accent-soft: rgba(79, 70, 229, 0.13); --feature-accent-shadow: rgba(79, 70, 229, 0.28); }
+
+.deployment-panel { display: flex; flex-direction: column; }
+.deployment-panel-header,
+.feature-panel-header { padding: 0.92rem 1.1rem 0.72rem; border-bottom: 1px solid rgba(203, 213, 225, 0.55); background: rgba(248, 250, 252, 0.56); }
+.deployment-title { margin: 0; font-size: 1.12rem; line-height: 1.3; color: var(--home-text-primary); font-weight: 700; }
+.deployment-panel-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.85rem; }
+.deployment-summary { margin: 0; font-size: 0.9rem; line-height: 1.52; color: var(--home-text-secondary); }
+.deployment-chip-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
+.deployment-chip { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 0.72rem; padding: 0.45rem 0.55rem; border: 1px solid rgba(203, 213, 225, 0.76); background: rgba(248, 250, 252, 0.62); color: #334155; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.deployment-chip i { font-size: 0.82rem; opacity: 0.9; }
+
+.deployment-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+.deployment-points li { display: flex; align-items: flex-start; gap: 0.45rem; font-size: 0.84rem; line-height: 1.45; color: var(--home-text-secondary); }
+.deployment-points i { font-size: 0.86rem; color: #2563eb; margin-top: 0.1rem; }
+
+.feature-panel-kicker { margin: 0 0 0.75rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--home-text-secondary); }
+.feature-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.feature-tab { border: 1px solid rgba(203, 213, 225, 0.9); background: rgba(255, 255, 255, 0.9); color: #334155; border-radius: 0.75rem; height: 2.5rem; padding: 0 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: all 0.25s ease; }
+.feature-tab i { font-size: 0.92rem; color: #64748b; }
+.feature-tab:hover { border-color: rgba(96, 165, 250, 0.7); color: #1e293b; }
+.feature-tab.active { background: var(--feature-accent); border-color: var(--feature-accent); color: #ffffff; box-shadow: 0 8px 18px var(--feature-accent-shadow); }
+.feature-tab.active i { color: #dbeafe; }
+
+.feature-panel-body { display: block; padding: 1.15rem 1.25rem 1.2rem; min-height: 214px; }
+.feature-panel-copy { display: flex; flex-direction: column; justify-content: center; }
+.feature-panel-copy h3 { margin: 0 0 0.5rem; font-size: 1.3rem; font-weight: 700; color: var(--home-text-primary); }
+.feature-panel-copy p { margin: 0; font-size: 0.98rem; line-height: 1.62; color: var(--home-text-secondary); max-width: 74ch; min-height: calc(1.62em * 2); }
+.feature-highlight-list { margin: 0.95rem 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem 0.8rem; }
+.feature-highlight-list li { display: flex; align-items: flex-start; gap: 0.45rem; color: var(--home-text-secondary); font-size: 0.88rem; line-height: 1.45; border: 1px solid rgba(203, 213, 225, 0.62); border-left: 3px solid var(--feature-accent); background: linear-gradient(90deg, var(--feature-accent-soft), rgba(255, 255, 255, 0.2)); border-radius: 0.65rem; padding: 0.48rem 0.58rem; }
+.feature-highlight-list i { font-size: 0.9rem; color: var(--feature-accent); margin-top: 0.08rem; }
+
+@media (max-width: 1023px) {
+  .feature-panel { max-width: 100%; }
+  .feature-tab { height: 2.35rem; padding: 0 0.7rem; font-size: 0.8rem; }
+}
+
+@media (max-width: 767px) {
+  .feature-panel-header { padding: 0.95rem 0.95rem 0.75rem; }
+  .feature-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
+  .feature-tab { justify-content: center; }
+  .feature-panel-body { padding: 0.95rem; min-height: auto; }
+  .feature-panel-copy p { font-size: 0.95rem; }
+  .feature-highlight-list { grid-template-columns: 1fr; gap: 0.5rem; margin-top: 0.8rem; }
+}
 
   .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
   .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(10px); }
 
-  @media (max-width: 1023px) {
-    .feature-dock { justify-content: center; }
-    .dock-line { left: 0; right: 0; }
-    .dock-items { gap: 1rem; overflow-x: auto; padding: 1rem; scrollbar-width: none; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
-    .dock-items::-webkit-scrollbar { display: none; }
-    .dock-icon { width: 3rem; height: 3rem; font-size: 1.2rem; }
-  }
+  .landing-footer { padding: 2rem 0; border-top: 1px solid var(--home-border); text-align: center; color: var(--home-text-secondary); font-size: 0.9rem; }
 
-.landing-footer { padding: 2rem 0; border-top: 1px solid var(--home-border); text-align: center; color: var(--home-text-secondary); font-size: 0.9rem; }
-
-@keyframes orbitPulse {
-  0%,
-  100% { opacity: 0.78; }
+  @keyframes orbitPulse {
+    0%,
+    100% { opacity: 0.78; }
   50% { opacity: 1; }
 }
 
@@ -426,12 +596,22 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   background: radial-gradient(circle at 8% 10%, rgba(37, 99, 235, 0.05) 0%, rgba(37, 99, 235, 0) 34%), radial-gradient(circle at 90% 75%, rgba(14, 165, 233, 0.05) 0%, rgba(14, 165, 233, 0) 30%), var(--home-bg);
 }
 .p-dark .landing-header { background: rgba(2, 6, 23, 0.85); border-bottom-color: rgba(255,255,255,0.05); }
-.p-dark .feature-chip { background: rgba(15, 23, 42, 0.85); border-color: #334155; }
-.p-dark .dock-icon { background: #0f172a; border-color: rgba(255,255,255,0.1); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-.p-dark .dock-icon::before { background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent); }
-.p-dark .dock-item:hover .dock-icon { border-color: rgba(96, 165, 250, 0.5); color: #60a5fa; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25); }
-.p-dark .dock-item.active .dock-icon { background: #1e293b; border-color: rgba(59, 130, 246, 0.6); color: #60a5fa; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
-.p-dark .dock-tooltip { background: #1e293b; color: #f8fafc; border-color: #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+.p-dark .theme-button :deep(.p-button) {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.55);
+  color: #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
+}
+.p-dark .theme-button :deep(.p-button:hover) {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(203, 213, 225, 0.72);
+  color: #f8fafc;
+}
+.p-dark .nav-link-pill { background: rgba(15, 23, 42, 0.7); border-color: rgba(148, 163, 184, 0.35); color: #cbd5e1; }
+.p-dark .nav-link-pill:hover { background: rgba(30, 41, 59, 0.82); border-color: rgba(148, 163, 184, 0.55); color: #e2e8f0; }
+.p-dark .nav-version-badge { background: rgba(255, 255, 255, 0.92); border-color: rgba(255, 255, 255, 0.45); color: #6d28d9; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
+.p-dark .feature-chip { background: rgba(15, 23, 42, 0.62); border-color: rgba(100, 116, 139, 0.62); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18); }
+.p-dark .feature-chip:hover, .p-dark .feature-chip.active { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2); background: rgba(30, 41, 59, 0.74); }
 .p-dark .quick-stat-tile, .p-dark .welcome-back-box { background: rgba(15, 23, 42, 0.6); border-color: rgba(255,255,255,0.08); }
 .p-dark .welcome-back-box { background: rgba(30, 41, 59, 0.5); }
 .p-dark .orbit-ring { border-color: rgba(255,255,255,0.05); }
@@ -439,4 +619,24 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .p-dark .github-badge { background: rgba(30, 41, 59, 0.4); border-color: rgba(255, 255, 255, 0.08); }
 .p-dark .github-badge:hover { background: rgba(30, 41, 59, 0.8); border-color: rgba(255, 255, 255, 0.15); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
 .p-dark .github-icon { background: white; color: #0f172a; }
+
+.p-dark .deployment-panel,
+.p-dark .feature-panel { background: linear-gradient(145deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.68)); border-color: rgba(148, 163, 184, 0.26); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24); }
+
+.p-dark .deployment-panel-header,
+.p-dark .feature-panel-header { border-bottom-color: rgba(148, 163, 184, 0.2); background: rgba(30, 41, 59, 0.5); }
+
+.p-dark .deployment-chip { background: rgba(15, 23, 42, 0.52); border-color: rgba(148, 163, 184, 0.42); color: #cbd5e1; }
+.p-dark .deployment-chip i { color: #94a3b8; }
+
+.p-dark .deployment-points li { color: #94a3b8; }
+.p-dark .deployment-points i { color: #60a5fa; }
+
+.p-dark .feature-tab { background: rgba(15, 23, 42, 0.85); border-color: rgba(148, 163, 184, 0.4); color: #cbd5e1; }
+.p-dark .feature-tab i { color: #94a3b8; }
+.p-dark .feature-tab:hover { border-color: rgba(96, 165, 250, 0.6); color: #e2e8f0; }
+.p-dark .feature-tab.active { background: var(--feature-accent); border-color: var(--feature-accent); color: #ffffff; box-shadow: 0 8px 18px var(--feature-accent-shadow); }
+.p-dark .feature-tab.active i { color: #dbeafe; }
+.p-dark .feature-highlight-list li { color: #94a3b8; border-color: rgba(148, 163, 184, 0.32); background: linear-gradient(90deg, var(--feature-accent-soft), rgba(15, 23, 42, 0.14)); }
+.p-dark .feature-highlight-list i { color: var(--feature-accent); }
 </style>
