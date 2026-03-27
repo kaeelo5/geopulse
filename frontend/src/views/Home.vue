@@ -24,9 +24,32 @@
               <i class="pi pi-github"></i>
               <span>GitHub</span>
             </a>
-            <span class="nav-version-badge" aria-label="Current version">{{ navVersionBadge }}</span>
+            <button class="nav-version-badge" aria-label="What's new" @click="toggleVersionPopover">{{ navVersionBadge }} <i class="pi pi-chevron-down" style="font-size:0.55rem;opacity:0.55;margin-left:2px;"></i></button>
           </div>
-          <span class="nav-version-badge nav-version-badge-mobile" aria-label="Current version">{{ navVersionBadge }}</span>
+          <button class="nav-version-badge nav-version-badge-mobile" aria-label="What's new" @click="toggleVersionPopover">{{ navVersionBadge }}</button>
+
+          <Popover ref="versionPopover" class="home-wn-popover">
+            <div class="home-wn-header">
+              <i class="pi pi-sparkles home-wn-icon"></i>
+              <span class="home-wn-title">What's New in {{ navVersionBadge }}</span>
+            </div>
+            <ul class="home-wn-list">
+              <li v-for="item in whatsNewHighlights" :key="item">
+                <i class="pi pi-check-circle"></i>
+                <span>{{ item }}</span>
+              </li>
+            </ul>
+            <a
+              href="https://github.com/tess1o/geopulse/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="home-wn-link"
+            >
+              <i class="pi pi-github"></i>
+              <span>Full release notes on GitHub</span>
+              <i class="pi pi-arrow-right"></i>
+            </a>
+          </Popover>
           <DarkModeSwitcher class="theme-button" />
           <div class="auth-actions" v-if="!isResolvingAuth">
             <template v-if="authStore.isAuthenticated">
@@ -295,6 +318,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import DarkModeSwitcher from '@/components/DarkModeSwitcher.vue'
 import Button from 'primevue/button'
+import Popover from 'primevue/popover'
 import apiService from '@/utils/apiService'
 
 const router = useRouter()
@@ -302,6 +326,8 @@ const authStore = useAuthStore()
 
 const isResolvingAuth = ref(true)
 const isLoginAvailable = ref(false)
+const versionPopover = ref(null)
+const toggleVersionPopover = (event) => versionPopover.value?.toggle(event)
 const isMobileViewport = ref(false)
 const continueDestination = ref({ path: '/app/timeline' })
 const appVersion = ref('')
@@ -533,8 +559,22 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .nav-link-pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.36rem 0.66rem; border-radius: 999px; border: 1px solid rgba(203, 213, 225, 0.85); background: rgba(255, 255, 255, 0.7); color: var(--home-text-secondary); text-decoration: none; font-size: 0.79rem; font-weight: 600; transition: all 0.2s ease; }
 .nav-link-pill i { font-size: 0.8rem; }
 .nav-link-pill:hover { color: #1e293b; border-color: rgba(148, 163, 184, 0.95); background: rgba(255, 255, 255, 0.95); transform: translateY(-1px); }
-.nav-version-badge { display: inline-flex; align-items: center; padding: 0.3rem 0.56rem; border-radius: 999px; border: 1px solid rgba(203, 213, 225, 0.9); background: rgba(255, 255, 255, 0.96); color: #7c3aed; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.03em; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); }
+.nav-version-badge { display: inline-flex; align-items: center; padding: 0.3rem 0.56rem; border-radius: 999px; border: 1px solid rgba(203, 213, 225, 0.9); background: rgba(255, 255, 255, 0.96); color: #7c3aed; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.03em; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); cursor: pointer; transition: background 0.15s ease, box-shadow 0.15s ease; }
+button.nav-version-badge { font-family: inherit; }
+button.nav-version-badge:hover { background: rgba(245, 243, 255, 0.98); box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15); }
 .nav-version-badge-mobile { display: none; }
+
+/* Home page What's New popover */
+.home-wn-popover :deep(.p-popover-content) { padding: 0; min-width: 18rem; max-width: 22rem; }
+.home-wn-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1rem 0.625rem; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.home-wn-icon { color: #7c3aed; font-size: 1rem; }
+.home-wn-title { font-size: 0.85rem; font-weight: 700; color: #0f172a; }
+.home-wn-list { list-style: none; margin: 0; padding: 0.625rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.home-wn-list li { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8rem; color: #475569; line-height: 1.4; }
+.home-wn-list li .pi-check-circle { color: #16a34a; font-size: 0.85rem; margin-top: 0.1rem; flex-shrink: 0; }
+.home-wn-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; font-size: 0.8rem; font-weight: 600; color: #2563eb; text-decoration: none; border-top: 1px solid rgba(0,0,0,0.08); transition: background 0.15s ease; }
+.home-wn-link:hover { background: rgba(37, 99, 235, 0.05); }
+.home-wn-link .pi-arrow-right { margin-left: auto; font-size: 0.7rem; opacity: 0.6; }
 
 @media (max-width: 1200px) {
   .nav-link-pill span { display: none; }
@@ -842,6 +882,12 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .p-dark .nav-link-pill { background: rgba(15, 23, 42, 0.7); border-color: rgba(148, 163, 184, 0.35); color: #cbd5e1; }
 .p-dark .nav-link-pill:hover { background: rgba(30, 41, 59, 0.82); border-color: rgba(148, 163, 184, 0.55); color: #e2e8f0; }
 .p-dark .nav-version-badge { background: rgba(255, 255, 255, 0.92); border-color: rgba(255, 255, 255, 0.45); color: #6d28d9; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
+.p-dark button.nav-version-badge:hover { background: rgba(237, 233, 254, 0.92); }
+.p-dark .home-wn-header { border-bottom-color: rgba(255,255,255,0.08); }
+.p-dark .home-wn-title { color: #f1f5f9; }
+.p-dark .home-wn-list li { color: #94a3b8; }
+.p-dark .home-wn-link { border-top-color: rgba(255,255,255,0.08); color: #60a5fa; }
+.p-dark .home-wn-link:hover { background: rgba(96, 165, 250, 0.08); }
 .p-dark .feature-chip { background: rgba(15, 23, 42, 0.62); border-color: rgba(100, 116, 139, 0.62); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18); }
 .p-dark .feature-chip:hover, .p-dark .feature-chip.active { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2); background: rgba(30, 41, 59, 0.74); }
 .p-dark .welcome-back-box { background: rgba(15, 23, 42, 0.6); border-color: rgba(255,255,255,0.08); }
