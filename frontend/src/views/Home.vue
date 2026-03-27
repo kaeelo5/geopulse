@@ -24,7 +24,7 @@
               <i class="pi pi-github"></i>
               <span>GitHub</span>
             </a>
-            <span class="nav-version-badge" aria-label="Current version">v1.23.0</span>
+            <span class="nav-version-badge" aria-label="Current version">{{ navVersionBadge }}</span>
           </div>
           <DarkModeSwitcher class="theme-button" />
           <div class="auth-actions" v-if="!isResolvingAuth">
@@ -190,6 +190,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import DarkModeSwitcher from '@/components/DarkModeSwitcher.vue'
 import Button from 'primevue/button'
+import apiService from '@/utils/apiService'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -201,6 +202,7 @@ const continueDestination = ref({ path: '/app/timeline' })
 const latestGpsUpdateLabel = ref('')
 const distanceTodayLabel = ref('')
 const timeMovingTodayLabel = ref('')
+const appVersion = ref('')
 
 const activeFeatureId = ref(1)
 
@@ -303,6 +305,16 @@ const shouldShowQuickStats = computed(() => {
   return authStore.isAuthenticated && !isResolvingAuth.value
 })
 
+const navVersionBadge = computed(() => {
+  if (!appVersion.value) {
+    return 'v...'
+  }
+  if (appVersion.value === 'Unknown') {
+    return 'Unknown'
+  }
+  return `v${appVersion.value}`
+})
+
 const handleSignOut = async () => {
   await authStore.logout()
   router.push('/')
@@ -318,9 +330,19 @@ const updateUserStats = () => {
   timeMovingTodayLabel.value = '45 min'
 }
 
+const fetchVersion = async () => {
+  try {
+    const response = await apiService.get('/version')
+    appVersion.value = response?.version || 'Unknown'
+  } catch (error) {
+    appVersion.value = 'Unknown'
+  }
+}
+
 onMounted(async () => {
   updateViewportState()
   window.addEventListener('resize', updateViewportState)
+  fetchVersion()
   
   try {
     await authStore.resolveAuthentication()
