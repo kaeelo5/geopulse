@@ -332,8 +332,12 @@ const updateUserStats = () => {
 
 const fetchVersion = async () => {
   try {
-    const response = await apiService.get('/version')
-    appVersion.value = response?.version || 'Unknown'
+    if (window.VUE_APP_CONFIG && window.VUE_APP_CONFIG.VERSION) {
+      appVersion.value = window.VUE_APP_CONFIG.VERSION
+    } else {
+      const response = await apiService.get('/version')
+      appVersion.value = response?.version || 'Unknown'
+    }
   } catch (error) {
     appVersion.value = 'Unknown'
   }
