@@ -187,7 +187,8 @@ const apiService = {
             '/auth/refresh-cookie',
             '/auth/logout',
             '/auth/oidc/providers',
-            '/auth/oidc/callback'
+            '/auth/oidc/callback',
+            '/version'
         ];
 
         // Skip auth check for shared location endpoints (they use their own temporary tokens)
