@@ -80,11 +80,34 @@
               />
             </div>
 
-            <!-- Version Display -->
-            <div class="gp-nav-version">
-              <span class="gp-nav-version-label">Version</span>
-              <span class="gp-nav-version-number">{{ appVersion }}</span>
-            </div>
+            <!-- Version Display — click to show What's New popover -->
+            <button class="gp-nav-version" @click="toggleWhatsNew" aria-label="What's new in this version">
+              <span class="gp-nav-version-label">What's New</span>
+              <span class="gp-nav-version-number">{{ appVersion }} <i class="pi pi-chevron-up" style="font-size:0.6rem;opacity:0.6;"></i></span>
+            </button>
+
+            <Popover ref="whatsNewPopover" class="gp-whats-new-popover">
+              <div class="gp-wn-header">
+                <i class="pi pi-sparkles gp-wn-icon"></i>
+                <span class="gp-wn-title">What's New in {{ appVersion }}</span>
+              </div>
+              <ul class="gp-wn-list">
+                <li v-for="item in whatsNewHighlights" :key="item">
+                  <i class="pi pi-check-circle"></i>
+                  <span>{{ item }}</span>
+                </li>
+              </ul>
+              <a
+                href="https://github.com/tess1o/geopulse/releases"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="gp-wn-link"
+              >
+                <i class="pi pi-github"></i>
+                <span>Full release notes on GitHub</span>
+                <i class="pi pi-arrow-right"></i>
+              </a>
+            </Popover>
           </nav>
         </div>
       </template>
@@ -106,6 +129,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import Drawer from 'primevue/drawer'
+import Popover from 'primevue/popover'
 import BaseButton from '../base/BaseButton.vue'
 import NavigationSection from './NavigationSection.vue'
 import DarkModeSwitcher from '@/components/DarkModeSwitcher.vue'
@@ -142,6 +166,19 @@ const { unreadCount: geofenceUnreadCount } = storeToRefs(notificationsStore)
 // Local state
 const visible = ref(false)
 const appVersion = ref('')
+const whatsNewPopover = ref(null)
+
+const whatsNewHighlights = [
+  'MQTT TLS support for secure external broker connections',
+  'Friends live location with real-time filter controls',
+  'Geofence improvements with smarter entry/exit detection',
+  'Geocoding retry logic with circuit-breaker protection',
+  'Timeline page fix for large date-range queries',
+]
+
+const toggleWhatsNew = (event) => {
+  whatsNewPopover.value?.toggle(event)
+}
 
 // Computed
 const drawerClasses = computed(() => ({
@@ -546,6 +583,103 @@ onMounted(async () => {
   font-weight: 600;
   color: var(--gp-text-secondary);
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+/* Version button interactivity */
+button.gp-nav-version {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+button.gp-nav-version:hover {
+  background: var(--gp-surface-light, rgba(0, 0, 0, 0.05));
+}
+
+/* What's New popover */
+.gp-whats-new-popover :deep(.p-popover-content) {
+  padding: 0;
+  min-width: 18rem;
+  max-width: 22rem;
+}
+.gp-wn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem 0.625rem;
+  border-bottom: 1px solid var(--gp-border-light, rgba(0,0,0,0.08));
+}
+.gp-wn-icon {
+  color: #7c3aed;
+  font-size: 1rem;
+}
+.gp-wn-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--gp-text-primary, #0f172a);
+}
+.gp-wn-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.625rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.gp-wn-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--gp-text-secondary, #475569);
+  line-height: 1.4;
+}
+.gp-wn-list li .pi-check-circle {
+  color: #16a34a;
+  font-size: 0.85rem;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+.gp-wn-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+  border-top: 1px solid var(--gp-border-light, rgba(0,0,0,0.08));
+  transition: background 0.15s ease;
+}
+.gp-wn-link:hover {
+  background: rgba(37, 99, 235, 0.05);
+}
+.gp-wn-link .pi-arrow-right {
+  margin-left: auto;
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+/* Dark mode — popover */
+.p-dark .gp-wn-header {
+  border-bottom-color: rgba(255,255,255,0.08);
+}
+.p-dark .gp-wn-title {
+  color: #f1f5f9;
+}
+.p-dark .gp-wn-list li {
+  color: #94a3b8;
+}
+.p-dark .gp-wn-link {
+  border-top-color: rgba(255,255,255,0.08);
+  color: #60a5fa;
+}
+.p-dark .gp-wn-link:hover {
+  background: rgba(96, 165, 250, 0.08);
+}
+.p-dark button.gp-nav-version:hover {
+  background: rgba(255,255,255,0.05);
 }
 
 /* Dark Mode */
