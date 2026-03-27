@@ -279,24 +279,6 @@
 
       </section>
 
-      <section v-if="shouldShowQuickStats" class="quick-stats-section">
-        <div class="content-wrapper">
-          <div class="quick-stats-grid">
-            <article class="quick-stat-tile quick-stat-latest">
-              <div class="quick-stat-head"><span class="quick-stat-icon"><i class="pi pi-history"></i></span><p class="quick-stat-label">Latest GPS update</p></div>
-              <p class="quick-stat-value">{{ latestGpsUpdateLabel }}</p>
-            </article>
-            <article class="quick-stat-tile quick-stat-distance">
-              <div class="quick-stat-head"><span class="quick-stat-icon"><i class="pi pi-map-marker"></i></span><p class="quick-stat-label">Distance today</p></div>
-              <p class="quick-stat-value">{{ distanceTodayLabel }}</p>
-            </article>
-            <article class="quick-stat-tile quick-stat-moving">
-              <div class="quick-stat-head"><span class="quick-stat-icon"><i class="pi pi-send"></i></span><p class="quick-stat-label">Time moving today</p></div>
-              <p class="quick-stat-value">{{ timeMovingTodayLabel }}</p>
-            </article>
-          </div>
-        </div>
-      </section>
     </main>
     
     <footer class="landing-footer" v-if="!authStore.isAuthenticated">
@@ -322,9 +304,6 @@ const isResolvingAuth = ref(true)
 const isLoginAvailable = ref(false)
 const isMobileViewport = ref(false)
 const continueDestination = ref({ path: '/app/timeline' })
-const latestGpsUpdateLabel = ref('')
-const distanceTodayLabel = ref('')
-const timeMovingTodayLabel = ref('')
 const appVersion = ref('')
 const mobileShowcaseTab = ref('features')
 
@@ -454,10 +433,6 @@ const heroTitle = computed(() => {
   return authStore.isAuthenticated ? 'Welcome back' : 'Self-Host Anywhere'
 })
 
-const shouldShowQuickStats = computed(() => {
-  return authStore.isAuthenticated && !isResolvingAuth.value
-})
-
 const navVersionBadge = computed(() => {
   if (!appVersion.value) {
     return 'v...'
@@ -475,12 +450,6 @@ const handleSignOut = async () => {
 
 const updateViewportState = () => {
   isMobileViewport.value = window.innerWidth < 768
-}
-
-const updateUserStats = () => {
-  latestGpsUpdateLabel.value = '2 minutes ago'
-  distanceTodayLabel.value = '12.4 km'
-  timeMovingTodayLabel.value = '45 min'
 }
 
 const fetchVersion = async () => {
@@ -508,10 +477,6 @@ onMounted(async () => {
     isResolvingAuth.value = false
   }
   
-  if (authStore.isAuthenticated) {
-    updateUserStats()
-  }
-
   if (!authStore.isAuthenticated) {
     startFeatureAutoPlay()
   }
@@ -696,19 +661,6 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   .ctx-panel-body { padding: 0.95rem; }
   }
 
-.quick-stats-section { padding: 3rem 0; background: var(--home-bg); }
-.content-wrapper { max-width: 1400px; margin: 0 auto; padding: 0 1.5rem; }
-.quick-stats-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
-@media (min-width: 768px) { .quick-stats-grid { grid-template-columns: repeat(3, 1fr); } }
-
-.quick-stat-tile { background: var(--home-card-bg); border: 1px solid var(--home-border); border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; box-shadow: var(--home-shadow); }
-.quick-stat-head { display: flex; align-items: center; gap: 0.75rem; }
-.quick-stat-icon { width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; background: rgba(15, 118, 110, 0.1); color: var(--home-accent); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-.quick-stat-latest .quick-stat-icon { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
-.quick-stat-distance .quick-stat-icon { background: rgba(37, 99, 235, 0.1); color: #2563eb; }
-.quick-stat-label { margin: 0; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--home-text-secondary); }
-.quick-stat-value { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--home-text-primary); }
-
 .feature-panel-wrapper { width: 100%; max-width: 1400px; margin: -1.15rem auto 0; padding: 0; position: relative; z-index: 10; display: grid; grid-template-columns: minmax(320px, 0.38fr) minmax(0, 0.62fr); gap: 1rem; align-items: stretch; }
 .ctx-panel,
 .feature-panel { width: 100%; background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(203, 213, 225, 0.6); border-radius: 1rem; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06); overflow: hidden; }
@@ -892,7 +844,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .p-dark .nav-version-badge { background: rgba(255, 255, 255, 0.92); border-color: rgba(255, 255, 255, 0.45); color: #6d28d9; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
 .p-dark .feature-chip { background: rgba(15, 23, 42, 0.62); border-color: rgba(100, 116, 139, 0.62); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18); }
 .p-dark .feature-chip:hover, .p-dark .feature-chip.active { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2); background: rgba(30, 41, 59, 0.74); }
-.p-dark .quick-stat-tile, .p-dark .welcome-back-box { background: rgba(15, 23, 42, 0.6); border-color: rgba(255,255,255,0.08); }
+.p-dark .welcome-back-box { background: rgba(15, 23, 42, 0.6); border-color: rgba(255,255,255,0.08); }
 .p-dark .welcome-back-box { background: rgba(30, 41, 59, 0.5); }
 .p-dark .orbit-ring { border-color: rgba(255,255,255,0.05); }
 
