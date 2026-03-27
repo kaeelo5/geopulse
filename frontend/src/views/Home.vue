@@ -175,9 +175,9 @@
 
               <template v-else>
                 <div class="ctx-panel-body mobile-ctx-body">
-                  <!-- First Steps (unauthenticated) -->
+                  <!-- Admin Setup (unauthenticated) -->
                   <template v-if="leftPanelMode === 'first-steps'">
-                    <p class="ctx-summary">You're running GeoPulse. Here's how to finish setting up.</p>
+                    <p class="ctx-summary">Admin only — finish setting up your GeoPulse instance.</p>
                     <ol class="ctx-steps">
                       <li><span class="step-num">1</span><span>Register an account at <strong>/register</strong></span></li>
                       <li><span class="step-num">2</span><span>Add <code>GEOPULSE_ADMIN_EMAIL=you@example.com</code> to your <code>.env</code></span></li>
@@ -212,9 +212,9 @@
                 <p class="feature-panel-kicker">{{ leftPanelKicker }}</p>
               </div>
               <div class="ctx-panel-body">
-                <!-- First Steps (unauthenticated) -->
+                <!-- Admin Setup (unauthenticated) -->
                 <template v-if="leftPanelMode === 'first-steps'">
-                  <p class="ctx-summary">You're running GeoPulse. Here's how to finish setting up.</p>
+                  <p class="ctx-summary">Admin only — finish setting up your GeoPulse instance.</p>
                   <ol class="ctx-steps">
                     <li><span class="step-num">1</span><span>Register an account at <strong>/register</strong></span></li>
                     <li><span class="step-num">2</span><span>Add this to your <code>.env</code> file:</span></li>
@@ -407,17 +407,17 @@ const leftPanelMode = computed(() => {
 })
 
 const leftPanelKicker = computed(() => {
-  if (leftPanelMode.value === 'first-steps') return 'First Steps'
+  if (leftPanelMode.value === 'first-steps') return 'Admin Setup'
   return "What's New"
 })
 
 const leftPanelIcon = computed(() => {
-  if (leftPanelMode.value === 'first-steps') return 'pi pi-list-check'
+  if (leftPanelMode.value === 'first-steps') return 'pi pi-shield'
   return 'pi pi-sparkles'
 })
 
 const leftPanelMobileLabel = computed(() => {
-  if (leftPanelMode.value === 'first-steps') return 'Setup'
+  if (leftPanelMode.value === 'first-steps') return 'Admin Setup'
   return "What's New"
 })
 
